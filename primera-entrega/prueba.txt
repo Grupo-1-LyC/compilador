@@ -1,0 +1,36 @@
+
+algo = 1 + 4;
+maxi = "MAXI";
+flotante = 0.0;
+
+if(algo >= 4){
+
+    for(a;0;5){
+    algo = algo + a;
+    }
+
+    while(algo> 4){
+        algo = algo - 1;
+    }
+
+    if(algo<4){
+        /*BIEN*/
+    }
+    else{
+
+    }
+
+}
+else{
+    while(algo <= 1000000){
+
+        algo = algo * b
+        if(algo >= 10){
+            algo = algo/b*2;
+        }
+        else{
+            algo = algo + algo;
+        }
+
+    }
+}
