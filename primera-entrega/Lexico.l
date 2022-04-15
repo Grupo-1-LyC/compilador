@@ -1,9 +1,8 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "y.tab.h"
-FILE  *yyin;
+
 int yylval;
 char *yyltext;
 
@@ -13,8 +12,8 @@ void errorLexico(char *error);
 
 %}
 
-%option noyywrap  
-%option yylineno 
+%option noyywrap
+%option yylineno
 
 /*=====Palabras reservadas=====*/
 PR_IF           "if"
@@ -85,7 +84,7 @@ COMENTARIO      {COMENT_A}.*{COMENT_C}
 {PR_ELSE}           {printf("\nPR_ELSE: %s\n", yytext);return PR_ELSE;}
 {PR_WHILE}          {printf("\nPR_WHILE: %s\n", yytext);return PR_WHILE;}
 {PR_BETWEEN}        {printf("\nPR_BETWEEN: %s\n", yytext);return PR_BETWEEN;}
-{PR_TAKE}           {printf("\PR_TAKE: %s\n", yytext);return PR_TAKE;}
+{PR_TAKE}           {printf("\nPR_TAKE: %s\n", yytext);return PR_TAKE;}
 {PR_READ}           {printf("\nPR_READ: %s\n", yytext);return PR_READ;}
 {PR_PRINT}          {printf("\nPR_PRINT: %s\n", yytext);return PR_PRINT;}
 
@@ -131,10 +130,7 @@ COMENTARIO      {COMENT_A}.*{COMENT_C}
 "\n\t"
 " "             		
 "\r\n"
-.			        {
-                        sprintf(msg_error, "Caracter no reconocido %s", yytext);
-                        errorLexico(msg_error);
-                    }
+.			        {sprintf(msg_error, "Caracter no reconocido %s", yytext);errorLexico(msg_error);}
 %%
 
 void errorLexico(char *error) {
