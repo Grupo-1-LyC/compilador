@@ -37,9 +37,9 @@ IF(numero_entero >= 4){
 
 ELSE{
 
-    WHILE(BETWEEN(numero_entero, [0 ; 1000000]) AND 1 == 1){
+    WHILE(BETWEEN(numero_entero, [0 ; 32000]) AND 1 == 1){
 
-        numero_entero = numero_entero * numero_flotante;
+        numero_entero := numero_entero * numero_flotante;
         IF(NOT numero_entero >= 10 OR numero_entero > 11){
             numero_entero := numero_entero / numero_flotante * 2;
         }

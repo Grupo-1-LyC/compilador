@@ -96,48 +96,48 @@ ID			    {LETRA}({LETRA}|{GUION_BAJO}|{DIGITO})*
 COMENTARIO      {COMENT_A}.*{COMENT_C}
 
 %%
-{PR_IF}             {printf("\nPR_IF: %s\n", yytext);return PR_IF;}
-{PR_ELSE}           {printf("\nPR_ELSE: %s\n", yytext);return PR_ELSE;}
-{PR_WHILE}          {printf("\nPR_WHILE: %s\n", yytext);return PR_WHILE;}
-{PR_BETWEEN}        {printf("\nPR_BETWEEN: %s\n", yytext);return PR_BETWEEN;}
-{PR_TAKE}           {printf("\nPR_TAKE: %s\n", yytext);return PR_TAKE;}
-{PR_READ}           {printf("\nPR_READ: %s\n", yytext);return PR_READ;}
-{PR_WRITE}          {printf("\nPR_WRITE: %s\n", yytext);return PR_WRITE;}
-{PR_DECVAR}         {printf("\nPR_DECVAR: %s\n", yytext);return PR_DECVAR;}
-{PR_ENDDEC}         {printf("\nPR_ENDDEC: %s\n", yytext);return PR_ENDDEC;}
+{PR_IF}             {return PR_IF;}
+{PR_ELSE}           {return PR_ELSE;}
+{PR_WHILE}          {return PR_WHILE;}
+{PR_BETWEEN}        {return PR_BETWEEN;}
+{PR_TAKE}           {return PR_TAKE;}
+{PR_READ}           {return PR_READ;}
+{PR_WRITE}          {return PR_WRITE;}
+{PR_DECVAR}         {return PR_DECVAR;}
+{PR_ENDDEC}         {return PR_ENDDEC;}
 
-{PR_INTEGER}        {printf("\nPR_INTEGER: %s\n", yytext);return PR_INTEGER;}
-{PR_FLOAT}          {printf("\nPR_FLOAT: %s\n", yytext);return PR_FLOAT;}
-{PR_STRING}         {printf("\nPR_STRING: %s\n", yytext);return PR_STRING;}
+{PR_INTEGER}        {return PR_INTEGER;}
+{PR_FLOAT}          {return PR_FLOAT;}
+{PR_STRING}         {return PR_STRING;}
 
-{OP_ASIGN}   		{printf("\nOP_ASIGN: %s\n", yytext);return OP_ASIGN;}
+{OP_ASIGN}   		{return OP_ASIGN;}
 
-{OP_SUM}		    {printf("\nOP_SUM: %s\n", yytext);return OP_SUM;}
-{OP_MUL}            {printf("\nOP_MUL: %s\n", yytext);return OP_MUL;}
-{OP_RES}		    {printf("\nOP_RES: %s\n", yytext);return OP_RES;}
-{OP_DIV}            {printf("\nOP_DIV: %s\n", yytext);return OP_DIV;}
+{OP_SUM}		    {return OP_SUM;}
+{OP_MUL}            {return OP_MUL;}
+{OP_RES}		    {return OP_RES;}
+{OP_DIV}            {return OP_DIV;}
 
-{OP_AND}            {printf("\nOP_AND: %s\n", yytext);return OP_AND;}
-{OP_OR}             {printf("\nOP_OR: %s\n", yytext);return OP_OR;}
-{OP_NOT}            {printf("\nOP_NOT: %s\n", yytext);return OP_NOT;}
+{OP_AND}            {return OP_AND;}
+{OP_OR}             {return OP_OR;}
+{OP_NOT}            {return OP_NOT;}
 
-{OP_IGUAL}          {printf("\nOP_IGUAL: %s\n", yytext);return OP_IGUAL;}
-{OP_DIF}            {printf("\nOP_DIF: %s\n", yytext);return OP_DIF;}
-{OP_MENOR}          {printf("\nOP_MENOR: %s\n", yytext);return OP_MENOR;}
-{OP_MAYOR}          {printf("\nOP_MAYOR: %s\n", yytext);return OP_MAYOR;}
-{OP_MENOR_I}        {printf("\nOP_MENOR_I: %s\n", yytext);return OP_MENOR_I;}
-{OP_MAYOR_I}        {printf("\nOP_MAYOR_I: %s\n", yytext);return OP_MAYOR_I;}
+{OP_IGUAL}          {return OP_IGUAL;}
+{OP_DIF}            {return OP_DIF;}
+{OP_MENOR}          {return OP_MENOR;}
+{OP_MAYOR}          {return OP_MAYOR;}
+{OP_MENOR_I}        {return OP_MENOR_I;}
+{OP_MAYOR_I}        {return OP_MAYOR_I;}
 
-{PAR_A}             {printf("\nPAR_A: %s\n", yytext);return PAR_A;}
-{PAR_C}             {printf("\nPAR_C: %s\n", yytext);return PAR_C;}
-{COR_A}             {printf("\nCOR_A: %s\n", yytext);return COR_A;}
-{COR_C}             {printf("\nCOR_C: %s\n", yytext);return COR_C;}
-{LLAVE_A}           {printf("\nLLAVE_A: %s\n", yytext);return LLAVE_A;}
-{LLAVE_C}           {printf("\nLLAVE_C: %s\n", yytext);return LLAVE_C;}
+{PAR_A}             {return PAR_A;}
+{PAR_C}             {return PAR_C;}
+{COR_A}             {return COR_A;}
+{COR_C}             {return COR_C;}
+{LLAVE_A}           {return LLAVE_A;}
+{LLAVE_C}           {return LLAVE_C;}
 
-{DOS_PUNTOS}        {printf("\nDOS_PUNTOS: %s\n", yytext);return DOS_PUNTOS;}
-{COMA}              {printf("\nCOMA: %s\n", yytext);return COMA;}
-{PUNTO_COMA}        {printf("\nPUNTO_COMA: %s\n", yytext);return PUNTO_COMA;}
+{DOS_PUNTOS}        {return DOS_PUNTOS;}
+{COMA}              {return COMA;}
+{PUNTO_COMA}        {return PUNTO_COMA;}
 
 {CTE_INT}           { 
                         if(strtol(yytext, (char **)NULL, 10) < MININT || strtol(yytext, (char **)NULL, 10) > MAXINT){
