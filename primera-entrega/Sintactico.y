@@ -9,13 +9,25 @@ int yyerror();
 int yylex();
 %}
 
+%union {
+    int int_val;
+    double float_val;
+    char *str_val;
+}
+
+%type <int_val> CTE_INT
+%type <float_val> CTE_FLOAT
+%type <str_val> ID CTE_STRING
+
 %token PR_IF
 %token PR_ELSE
 %token PR_WHILE
 %token PR_BETWEEN
 %token PR_TAKE
 %token PR_READ
-%token PR_PRINT
+%token PR_WRITE
+%token PR_DECVAR
+%token PR_ENDDEC
 
 %token PR_INTEGER
 %token PR_FLOAT
@@ -45,6 +57,10 @@ int yylex();
 %token COR_C
 %token LLAVE_A
 %token LLAVE_C
+
+%token DOS_PUNTOS
+%token COMA
+%token PUNTO_COMA
 
 %token CTE_INT
 %token CTE_FLOAT
