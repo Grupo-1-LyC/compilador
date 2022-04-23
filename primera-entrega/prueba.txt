@@ -1,36 +1,50 @@
 
-algo = 1 + 4;
-maxi = "MAXI";
-flotante = 0.0;
+DECVAR
+numero_entero, resultado_take1, resultado_take3, resultado_take4 : INTEGER
+-/ resultado_take_error : INTEGER /-
+constante_string : STRING
+numero_flotante, resultado_take2 : FLOAT
+ENDDEC
+READ numero_entero;
+constante_string := "MAXI";
+numero_flotante := 0.0;
 
-if(algo >= 4){
+WRITE constante_string;
+WRITE "Esto es una constante string";
+WRITE 5; -/ WRITE de constante entera /-
+WRITE 142.564; -/ WRITE de constante flotante /-
 
-    for(a;0;5){
-    algo = algo + a;
+IF(numero_entero >= 4){
+
+    WHILE(numero_entero > 4){
+        numero_entero := numero_entero - 1;
     }
 
-    while(algo> 4){
-        algo = algo - 1;
+    IF(TAKE(* ; 3 ; [2 ; 12 ; 24 ; 48]) != 576){
+        resultado_take1 := TAKE(+ ; 2 ; [2 ; 12 ; 24 ; 48]); -/ Resultado: 14 /-
     }
-
-    if(algo<4){
-        /*BIEN*/
+    ELSE{
+        resultado_take2 := TAKE(- ; 3 ; [6.5 ; 3 ; 2.5 ; 48]); -/ Resultado: 1.0 /-
+        WRITE resultado_take2;
+        resultado_take3 := TAKE(/ ; 4 ; []); -/ Resultado: 0 /-
+        WRITE resultado_take3;
+        resultado_take4 := TAKE(+ ; 2 ; [-4 ; 2]); -/ Resultado: -2 /-
+        WRITE resultado_take4;
+        -/ CASO DE ERROR CUANDO LA CANTIDAD DE ELEMENTOS DE LA LISTA ES MENOR A LA CANTIDAD DE ELEMENTOS QUE APLICAR EL OPERANDO /-
+        -/ resultado_take_error := TAKE(+ ; 3 ; [2 ; 12]); /-
     }
-    else{
-
-    }
-
 }
-else{
-    while(algo <= 1000000){
 
-        algo = algo * b
-        if(algo >= 10){
-            algo = algo/b*2;
-        }
-        else{
-            algo = algo + algo;
-        }
+ELSE{
 
+    WHILE(BETWEEN(numero_entero, [0 ; 1000000]) AND 1 == 1){
+
+        numero_entero = numero_entero * numero_flotante;
+        IF(NOT numero_entero >= 10 OR numero_entero > 11){
+            numero_entero := numero_entero / numero_flotante * 2;
+        }
+        ELSE{
+            numero_entero := numero_entero + numero_entero;
+        }
     }
 }

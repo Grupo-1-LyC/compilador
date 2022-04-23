@@ -16,17 +16,19 @@ void errorLexico(char *error);
 %option yylineno
 
 /*=====Palabras reservadas=====*/
-PR_IF           "if"
-PR_ELSE         "else"
-PR_WHILE        "while"
-PR_BETWEEN      "between"
-PR_TAKE         "take"
-PR_READ         "read"
-PR_PRINT        "print"
+PR_IF           "IF"
+PR_ELSE         "ELSE"
+PR_WHILE        "WHILE"
+PR_BETWEEN      "BETWEEN"
+PR_TAKE         "TAKE"
+PR_READ         "READ"
+PR_PRINT        "WRITE"
+PR_DECVAR       "DECVAR"
+PR_ENDDEC       "ENDDEC"
 /* Falta definir si aplicarán los tipos de dato*/
-PR_INTEGER      "int"
-PR_FLOAT        "float"
-PR_STRING       "str"
+PR_INTEGER      "INTEGER"
+PR_FLOAT        "FLOAT"
+PR_STRING       "STRING"
 
 /*======Operador asignación======*/
 OP_ASIGN   		"="
