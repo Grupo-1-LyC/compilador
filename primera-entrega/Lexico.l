@@ -85,14 +85,12 @@ COMENT_C        "/-"
 /*======Constantes======*/
 CTE_INT		    {OP_RES}?{DIGITO}+
 CTE_FLOAT       {OP_RES}?({DIGITO}+{PUNTO}?{DIGITO}*|{DIGITO}*{PUNTO}?{DIGITO}+)
-/*A definir si es así*/
 CTE_STRING      {COMILLA_D}.*{COMILLA_D}
 
 /*======Identificador======*/
 ID			    {LETRA}({LETRA}|{GUION_BAJO}|{DIGITO})*
 
 /*======Comentario======*/
-/*A definir si es así*/
 COMENTARIO      {COMENT_A}.*{COMENT_C}
 
 %%
@@ -141,7 +139,7 @@ COMENTARIO      {COMENT_A}.*{COMENT_C}
 
 {CTE_INT}           { 
                         if(strtol(yytext, (char **)NULL, 10) < MININT || strtol(yytext, (char **)NULL, 10) > MAXINT){
-                            sprintf(msg_error, "Constante INTEGER %s fuera de rango. Mínimo permitido %d. Máximo permitido %d", yytext, MININT, MAXINT);
+                            sprintf(msg_error, "Constante INTEGER %s fuera de rango. Minimo permitido %d. Maximo permitido %d", yytext, MININT, MAXINT);
                             errorLexico(msg_error);
                         }
                         else{   
@@ -151,7 +149,7 @@ COMENTARIO      {COMENT_A}.*{COMENT_C}
                     }
 {CTE_FLOAT}         {
                         if(atof(yytext) < MINFLOAT || atof(yytext) > MAXFLOAT){
-                            sprintf(msg_error, "Constante FLAOT %s fuera de rango. Mínimo permitido %f. Máximo permitido %f", yytext, MINFLOAT, MAXFLOAT);
+                            sprintf(msg_error, "Constante FLAOT %s fuera de rango. Minimo permitido %f. Maximo permitido %f", yytext, MINFLOAT, MAXFLOAT);
                             errorLexico(msg_error);
                         }
                         else{
@@ -161,7 +159,7 @@ COMENTARIO      {COMENT_A}.*{COMENT_C}
                     }
 {CTE_STRING}        {
                         if(strlen(yytext) > MAXSTRING) {
-                            sprintf(msg_error, "Constante STRING %s excede la máxima longitud permitida. Máximo permitido: %d", yytext, MAXSTRING);
+                            sprintf(msg_error, "Constante STRING %s excede la maxima longitud permitida. Maximo permitido: %d", yytext, MAXSTRING);
                             errorLexico(msg_error);
                         }
                         yylval.str_val=yytext;
@@ -170,7 +168,7 @@ COMENTARIO      {COMENT_A}.*{COMENT_C}
 
 {ID}                {
                         if(strlen(yytext) > MAXLEXEMA){
-                            sprintf(msg_error, "Identificador de la variable %s excede la máxima longitud permitida. Máximo permitido: %d", yytext, MAXLEXEMA);
+                            sprintf(msg_error, "Identificador de la variable %s excede la maxima longitud permitida. Maximo permitido: %d", yytext, MAXLEXEMA);
                             errorLexico(msg_error);
                         } 
                         sprintf(lexema, "%s", yytext);
@@ -192,6 +190,6 @@ COMENTARIO      {COMENT_A}.*{COMENT_C}
 %%
 
 void errorLexico(char *error) {
-    printf("\nERROR LÉXICO: %s\n", error);
+    printf("\n¡ERROR LEXICO!: %s\n", error);
     exit(2);
 }

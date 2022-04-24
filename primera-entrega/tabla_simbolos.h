@@ -3,98 +3,80 @@
 #include <ctype.h>
 #include <stdio.h>
 
-void crearArchivoTS(void);
-int cargarEnTS(char*,int);
-void asignarValorConstante(void);
-//enum tipoDato {VACIO,INT,CTE_INT, REAL, CTE_REAL, STRING, CTE_STRING,ID};
-char tipo[9][14]={"","ENTERO", "CTE ENTERA","REAL","CTE REAL","STRING","CTE STRING","ID", "CONST"};
+int cargar_simbolo(char*, char*);
 
 typedef struct {
-    char nombre[100]; // Nombre del token
-    char tipo[14];  // Tipo de Dato
-    int  tipoDato; // Manejo interno del tipo tipo[14]
-    int flag;  // Para saber si el token fue almacenado o no en la TS
+    char nombre[100]; // Lexema que identifica el token
+    char tipo[14]; // Tipo de dato del token
+    int posicion_ocupada; // Bandera que identifica un registro de la tabla como ocupado
+    int longitud; // Cantidad de caracteres de una constante string
     char valor[100];
-} tsimbolo; // tabla de simbolos
+} t_simbolo;
 
+t_simbolo tabla_simbolos[100];
 
-// Tabla de simbolos
-tsimbolo simbolo[100];
-
-// Funciones generales de la TS ------------------------------------------------------------------------
-
-void crearArchivoTS(void) {
+void crear_archivo_ts(void) {
 	FILE *fp;
 	int x;
-	fp = fopen ( "ts.txt", "w+" );
-	if (fp == NULL) {
+	fp = fopen("ts.txt", "w+");
+	if(fp == NULL){
 		fputs ("File error",stderr); 
 		exit (1);
 	}
 	    
-	for (x = 0; x < 100; x++)
-    {
-        if( simbolo[x].tipoDato != 0 )
-            fprintf(fp, "%s\t%s\t%s\n", simbolo[x].nombre, simbolo[x].tipo, simbolo[x].valor);
+	for(x=0; x<100; x++){
+        if(tabla_simbolos[x].posicion_ocupada)
+            fprintf(fp, "%s\t%s\t%s\t%d\n", tabla_simbolos[x].nombre, tabla_simbolos[x].tipo, tabla_simbolos[x].valor, tabla_simbolos[x].longitud);
         else
             break;
-    		
 	}
 	fclose(fp);
 	
     printf("\n\nSe ha cerrado el archivo y la Tabla de Simbolos fue cargada sin errores.\n");
         
- }
+}
 
-int cargarEnTS ( char *nombre, int val ){
+int cargar_simbolo(char *nombre, char *val){
+    // Retorna la posición del símbolo en la tabla
     int x;
-	int l_repetido=0;
-    char nombreConGuion[strlen(nombre)+1];    
+    // Declaro un array que contenga el nombre más un guión
+    char nombreConGuion[strlen(nombre)+2];    
 
-    for (x=0; x<100; x++ ){
-        if (simbolo[x].flag==1){//para saber si el token ya esta en la tabla
-            if (strcmp (nombre,simbolo[x].nombre)==0){
+    for(x=0; x<100; x++){
+        // Primero determino si el registro en la tabla está ocupado con un símbolo
+        // Para de estar forma solo trabajar con los registros válidos
+        if(tabla_simbolos[x].posicion_ocupada==1){
+            if(strcmp(nombre, tabla_simbolos[x].nombre)==0){
                 return x;
-                
             }
         }
     }
         
-    for (x=0; x<100 ; x++){
-        if(simbolo[x].flag==0){
-
-            if(strstr(tipo[val],"CTE")){
-                
-                strcpy(nombreConGuion, "_");   
+    for(x=0; x<100; x++){
+        // Primero determino si el registro en la tabla está vacío (no tiene un símbolo)
+        if(tabla_simbolos[x].posicion_ocupada==0){
+            // Determino si CTE está dentro de val para cubrir los 3 casos de constantes
+            // CTE_INT, CTE_FLOAT, CTE_STRING
+            if(strstr(val, "CTE")){
+                strcpy(nombreConGuion, "_");
+                // Agrego el guión al principio del nombre 
                 strcat(nombreConGuion, nombre);
-                strcpy(simbolo[x].nombre,nombreConGuion);
-                strcpy(simbolo[x].valor,nombre);
-            }else{
-                strcpy(simbolo[x].nombre,nombre);
+                strcpy(tabla_simbolos[x].nombre, nombreConGuion);
+                strcpy(tabla_simbolos[x].valor, nombre);
+                // Si es constante string guardo su longitud
+                if(strstr(val, "STRING")){
+                    tabla_simbolos[x].longitud = strlen(nombre) - 2; // Se resta dos para descartar las comillas
+                }
             }
-            
-            strcpy(simbolo[x].tipo,tipo[val]);
-            simbolo[x].tipoDato=val;
-            simbolo[x].flag=1;//para indicar que ya se almaceno en la tabla
+            else{
+                strcpy(tabla_simbolos[x].nombre, nombre);
+            }
+            strcpy(tabla_simbolos[x].tipo, val);
+            tabla_simbolos[x].posicion_ocupada = 1;
 
             return x;
         }
     }
 		
 	return x;
- }//retorna posicion en la tabla de simbolos
- 
- void asignarValorConstante()
- {
-     int x;
-     for (x=0; x<99; x++ ){
-        if (simbolo[x].flag==1){//para saber si el token ya esta en la tabla
-            if (simbolo[x].tipoDato==8){
-                char *aux=simbolo[x+1].nombre;
-                strcpy(simbolo[x].valor,++aux);//valor reconocido                
-            }
-        }
-    }
  }
-
-

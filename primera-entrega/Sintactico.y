@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "y.tab.h"
+#include "tabla_simbolos.h"
+
 int yystopparser=0;
 FILE  *yyin;
 
@@ -19,6 +21,7 @@ int yylex();
 %type <float_val> CTE_FLOAT
 %type <str_val> ID CTE_STRING
 
+/*=====Palabras reservadas=====*/
 %token PR_IF
 %token PR_ELSE
 %token PR_WHILE
@@ -29,21 +32,23 @@ int yylex();
 %token PR_DECVAR
 %token PR_ENDDEC
 
+/*=====Tipos de datos=====*/
 %token PR_INTEGER
 %token PR_FLOAT
 %token PR_STRING
 
+/*======Operador asignación======*/
 %token OP_ASIGN
-
+/*======Operadores matemáticos======*/
 %token OP_SUM
 %token OP_MUL
 %token OP_RES
 %token OP_DIV
-
+/*======Operadores lógicos======*/
 %token OP_AND
 %token OP_OR
 %token OP_NOT
-
+/*======Operadores comparación======*/
 %token OP_IGUAL
 %token OP_DIF
 %token OP_MENOR
@@ -51,6 +56,7 @@ int yylex();
 %token OP_MENOR_I
 %token OP_MAYOR_I
 
+/*======Agrupadores======*/
 %token PAR_A
 %token PAR_C
 %token COR_A
@@ -58,21 +64,24 @@ int yylex();
 %token LLAVE_A
 %token LLAVE_C
 
+/*======Caracteres especiales======*/
 %token DOS_PUNTOS
 %token COMA
 %token PUNTO_COMA
 
+/*======Constantes======*/
 %token CTE_INT
 %token CTE_FLOAT
 %token CTE_STRING
 
+/*======Identificador======*/
 %token ID
 
 %%
 p:
     /* Establecemos que al principio del archivo se debe hacer la declaración de variables*/
-    decvar programa {printf("\nRegla 'decvar programa' detectada");} |
-    programa {printf("\nRegla 'programa' detectada");};
+    decvar programa {printf("\nRegla 'decvar programa' detectada\n"); crear_archivo_ts();} |
+    programa {printf("\nRegla 'programa' detectada\n"); crear_archivo_ts();};
 
 decvar:
     PR_DECVAR declaracion_variables PR_ENDDEC {printf("\nRegla 'PR_DECVAR declaracion_variables PR_ENDDEC' detectada");};
@@ -82,8 +91,8 @@ declaracion_variables:
     declaracion_variables lista_variables DOS_PUNTOS tipo_dato {printf("\nRegla 'declaracion_variables lista_variables DOS_PUNTOS tipo_dato' detectada");};
 
 lista_variables:
-    ID |
-    lista_variables COMA ID {printf("\nRegla 'lista_variables COMA ID' detectada");};
+    ID {cargar_simbolo($1, "ID");} |
+    lista_variables COMA ID {printf("\nRegla 'lista_variables COMA ID' detectada"); cargar_simbolo($3, "ID");};
 
 tipo_dato:
     PR_INTEGER | 
@@ -105,9 +114,9 @@ sentencia:
     entrada PUNTO_COMA;
 
 asignacion:
-    ID OP_ASIGN expresion {printf("\nRegla 'ID OP_ASIGN expresion' detectada");} |
+    ID OP_ASIGN expresion {printf("\nRegla 'ID OP_ASIGN expresion' detectada"); cargar_simbolo($1, "ID");} |
     /* Solo permitimos asignación de constantes string, no permitimos operaciones */
-    ID OP_ASIGN CTE_STRING {printf("\nRegla 'ID OP_ASIGN CTE_STRING' detectada");};
+    ID OP_ASIGN CTE_STRING {printf("\nRegla 'ID OP_ASIGN CTE_STRING' detectada"); cargar_simbolo($1, "ID"); cargar_simbolo($3, "CTE_STRING");};
 
 expresion:
     expresion OP_SUM termino {printf("\nRegla 'expresion OP_SUM termino' detectada");} |
@@ -121,10 +130,16 @@ termino:
 
 factor:
     /* Según la sintaxis CTE_INT podría ser un número mayor o igual a la cantidad de constantes numericas de la lista pero consideramos que eso es un problema semántico */
-    PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C {printf("\nRegla 'PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C' detectada");} |
+    PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C {
+        printf("\nRegla 'PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C' detectada");
+        // Cast a string
+        char valorString[100];
+        sprintf(valorString, "%d", $5);
+        cargar_simbolo(valorString, "CTE_INT");
+    } |
     PAR_A expresion PAR_C {printf("\nRegla 'PAR_A expresion PAR_C' detectada");} |
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
-    ID |
+    ID {cargar_simbolo($1, "ID");} |
     constante_numerica;
 
 operador_matematico:
@@ -142,8 +157,18 @@ lista:
     lista PUNTO_COMA constante_numerica {printf("\nRegla 'lista PUNTO_COMA constante_numerica' detectada");};
 
 constante_numerica:
-    CTE_INT |
-    CTE_FLOAT;
+    CTE_INT {
+        // Cast a string
+        char valorString[100];
+        sprintf(valorString, "%d", $1);
+        cargar_simbolo(valorString, "CTE_INT");
+    } |
+    CTE_FLOAT {
+        // Cast a string
+        char valorString[100];
+        sprintf(valorString, "%lf", $1);
+        cargar_simbolo(valorString, "CTE_FLOAT");
+    };
 
 iteracion:
     PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C {printf("\nRegla 'PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");};
@@ -162,7 +187,7 @@ condicion_multiple:
 
 condicion_simple:
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
-    PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C {printf("\nRegla 'PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C' detectada");} |
+    PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C {printf("\nRegla 'PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C' detectada"); cargar_simbolo($3, "ID");} |
     /* Hacemos recursividad a derecha porque el NOT tiene que estar a la derecha de la condición y permitimos múltiples negaciones */
     OP_NOT condicion_simple {printf("\nRegla 'OP_NOT condicion_simple' detectada");} |
     expresion operador_comparacion expresion {printf("\nRegla 'expresion operador_comparacion expresion' detectada");};
@@ -179,12 +204,12 @@ salida:
     PR_WRITE mensaje {printf("\nRegla 'PR_WRITE mensaje' detectada");};
 
 entrada:   
-    PR_READ ID {printf("\nRegla 'PR_READ ID' detectada");};
+    PR_READ ID {printf("\nRegla 'PR_READ ID' detectada"); cargar_simbolo($2, "ID");};
 
 mensaje:
-    ID |
+    ID {cargar_simbolo($1, "ID");} |
     constante_numerica |
-    CTE_STRING;
+    CTE_STRING {cargar_simbolo($1, "CTE_STRING");};
 
 %%
 
