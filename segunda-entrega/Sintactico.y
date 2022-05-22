@@ -14,8 +14,14 @@ FILE  *yyin;
 //que el operador quede antes que el segundo operando en la notación polaca
 char op_comparacion[4];
 
-//Pila donde guardaremos las posiciones donde aplicar saltos en condiciones
-t_pila pila;
+//Variable global para guardar la posicion de una condicion en el array de polaca
+//y usarla en cada implementacion de una condicion (seleccion o iteracion)
+int pos_condicion;
+
+//Pila donde guardaremos las posiciones donde aplicar saltos en selecciones
+t_pila pila_seleccion;
+//Pila donde guardaremos las posiciones donde aplicar saltos en iteraciones
+t_pila pila_iteracion;
 
 int yyerror();
 int yylex();
@@ -195,25 +201,43 @@ constante_numerica:
     };
 
 iteracion:
-    PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C {printf("\nRegla 'PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");};
+    PR_WHILE {
+        printf("\nRegla 'PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");
+        int pos = posicion_actual();
+        apilar(&pila_iteracion, &pos);
+        insertar_en_polaca("ET");
+    } PAR_A condicion_iteracion PAR_C cuerpo_iteracion;
+
+// El cuerpo de la iteracion se pone en una regla gramática aparte de la iteracion por limitaciones de Bison
+// Bison da error si se tiene más de una acción semántica en una regla
+cuerpo_iteracion:
+    LLAVE_A programa LLAVE_C {
+        insertar_en_polaca("BI");
+        int tope_pila;
+        desapilar(&pila_iteracion, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila_iteracion, &tope_pila);
+        insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
+    };
 
 seleccion:
-    PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C {
+    PR_IF PAR_A condicion_seleccion PAR_C LLAVE_A programa LLAVE_C {
         printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");
         int tope_pila;
-        desapilar(&pila, &tope_pila);
+        desapilar(&pila_seleccion, &tope_pila);
         int pos = posicion_actual();
         insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
     } |
-    PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C
+    PR_IF PAR_A condicion_seleccion PAR_C LLAVE_A programa LLAVE_C
     {
         printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
         insertar_en_polaca("BI");
         int tope_pila;
-        desapilar(&pila, &tope_pila);
+        desapilar(&pila_seleccion, &tope_pila);
         int pos = posicion_actual();
         insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-        apilar(&pila, &pos);
+        apilar(&pila_seleccion, &pos);
         insertar_en_polaca("");
     }
     bloque_else;
@@ -223,9 +247,20 @@ seleccion:
 bloque_else: 
     PR_ELSE LLAVE_A programa LLAVE_C { 
         int tope_pila;
-        desapilar(&pila, &tope_pila);
+        desapilar(&pila_seleccion, &tope_pila);
         int pos = posicion_actual();
         insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+    };
+
+// Separamos condiciones de seleccion de las de iteracion porque manejarán pilas distintas
+condicion_seleccion:
+    condicion {
+        apilar(&pila_seleccion, &pos_condicion);
+    };
+
+condicion_iteracion:
+    condicion {
+        apilar(&pila_iteracion, &pos_condicion);
     };
 
 condicion:
@@ -248,8 +283,7 @@ condicion_simple:
         printf("\nRegla 'expresion operador_comparacion expresion' detectada");
         insertar_en_polaca("CMP");
         insertar_en_polaca(op_comparacion);
-        int pos = posicion_actual();
-        apilar(&pila, &pos);
+        pos_condicion = posicion_actual();
         insertar_en_polaca("");
     };
 
@@ -280,11 +314,13 @@ int main(int argc, char *argv[]){
         printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
     }
     else{
-        //Inicializamos la pila donde guardaremos las posiciones donde aplicar saltos en condiciones
-        crear_pila(&pila);
+        //Inicializamos las pilas donde guardaremos las posiciones donde aplicar saltos
+        crear_pila(&pila_seleccion);
+        crear_pila(&pila_iteracion);
         yyparse();
     }
-    vaciar_pila(&pila);
+    vaciar_pila(&pila_seleccion);
+    vaciar_pila(&pila_iteracion);
     fclose(yyin);
     return 0;
 }

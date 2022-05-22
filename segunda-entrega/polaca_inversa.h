@@ -51,4 +51,5 @@ void insertar_en_polaca(char *valor) {
 
 void insertar_en_polaca_posicion(int pos, char *valor) {
     strcpy(polaca_inversa[pos].valor, valor);
+    polaca_inversa[pos].posicion_ocupada = 1;
 }
