@@ -4,12 +4,22 @@
 #include "y.tab.h"
 #include "tabla_simbolos.h"
 #include "polaca_inversa.h"
+#include "PILAdinamica.h"
 
 int yystopparser=0;
 FILE  *yyin;
 
+//Array para almacenar el comparador a usar en una condición, ya que
+//la regla del comparador se evalúa antes que las expresiones haciendo
+//que el operador quede antes que el segundo operando en la notación polaca
+char op_comparacion[4];
+
+//Pila donde guardaremos las posiciones donde aplicar saltos en condiciones
+t_pila pila;
+
 int yyerror();
 int yylex();
+char* conv_int_string(int);
 %}
 
 %union {
@@ -115,9 +125,20 @@ sentencia:
     entrada PUNTO_COMA;
 
 asignacion:
-    ID OP_ASIGN expresion {printf("\nRegla 'ID OP_ASIGN expresion' detectada"); cargar_simbolo($1, "ID"); insertar_en_polaca($1); insertar_en_polaca(":=");} |
+    ID OP_ASIGN expresion {
+        printf("\nRegla 'ID OP_ASIGN expresion' detectada"); 
+        cargar_simbolo($1, "ID"); 
+        insertar_en_polaca($1); 
+        insertar_en_polaca(":=");
+    } |
     /* Solo permitimos asignación de constantes string, no permitimos operaciones */
-    ID OP_ASIGN CTE_STRING {printf("\nRegla 'ID OP_ASIGN CTE_STRING' detectada"); cargar_simbolo($1, "ID"); cargar_simbolo($3, "CTE_STRING"); insertar_en_polaca($1); insertar_en_polaca(":=");};
+    ID OP_ASIGN CTE_STRING {
+        printf("\nRegla 'ID OP_ASIGN CTE_STRING' detectada"); 
+        cargar_simbolo($1, "ID"); 
+        cargar_simbolo($3, "CTE_STRING"); 
+        insertar_en_polaca($1); 
+        insertar_en_polaca(":=");
+    };
 
 expresion:
     expresion OP_SUM termino {printf("\nRegla 'expresion OP_SUM termino' detectada"); insertar_en_polaca("+");} |
@@ -177,8 +198,35 @@ iteracion:
     PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C {printf("\nRegla 'PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");};
 
 seleccion:
-    PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C {printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");} |
-    PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C {printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");};
+    PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C {
+        printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+    } |
+    PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C
+    {
+        printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
+        insertar_en_polaca("BI");
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        apilar(&pila, &pos);
+        insertar_en_polaca("");
+    }
+    bloque_else;
+
+// El else se pone en una regla gramática aparte de la seleccion por limitaciones de Bison
+// Bison da error si se tiene más de una acción semántica en una regla
+bloque_else: 
+    PR_ELSE LLAVE_A programa LLAVE_C { 
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+    };
 
 condicion:
     condicion_simple |
@@ -190,18 +238,28 @@ condicion_multiple:
 
 condicion_simple:
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
-    PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C {printf("\nRegla 'PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C' detectada"); cargar_simbolo($3, "ID");} |
+    PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C {
+        printf("\nRegla 'PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C' detectada"); 
+        cargar_simbolo($3, "ID");
+    } |
     /* Hacemos recursividad a derecha porque el NOT tiene que estar a la derecha de la condición y permitimos múltiples negaciones */
     OP_NOT condicion_simple {printf("\nRegla 'OP_NOT condicion_simple' detectada");} |
-    expresion operador_comparacion expresion {printf("\nRegla 'expresion operador_comparacion expresion' detectada");};
+    expresion operador_comparacion expresion {
+        printf("\nRegla 'expresion operador_comparacion expresion' detectada");
+        insertar_en_polaca("CMP");
+        insertar_en_polaca(op_comparacion);
+        int pos = posicion_actual();
+        apilar(&pila, &pos);
+        insertar_en_polaca("");
+    };
 
 operador_comparacion:
-    OP_IGUAL |
-    OP_DIF |
-    OP_MAYOR |
-    OP_MAYOR_I |
-    OP_MENOR |
-    OP_MENOR_I;
+    OP_IGUAL {strcpy(op_comparacion, "BNE");} |
+    OP_DIF {strcpy(op_comparacion, "BQE");} |
+    OP_MAYOR {strcpy(op_comparacion, "BLE");} |
+    OP_MAYOR_I {strcpy(op_comparacion, "BLT");} |
+    OP_MENOR {strcpy(op_comparacion, "BGE");} |
+    OP_MENOR_I {strcpy(op_comparacion, "BGT");};
 
 salida:
     PR_WRITE mensaje {printf("\nRegla 'PR_WRITE mensaje' detectada"); insertar_en_polaca("WRITE");};
@@ -222,14 +280,24 @@ int main(int argc, char *argv[]){
         printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
     }
     else{
+        //Inicializamos la pila donde guardaremos las posiciones donde aplicar saltos en condiciones
+        crear_pila(&pila);
         yyparse();
     }
+    vaciar_pila(&pila);
     fclose(yyin);
     return 0;
 }
 
 int yyerror(void){
-  printf("\nError sintactico\n");
+  printf("\n¡ERROR SINTACTICO!\n");
   exit(1);
+}
+
+char* conv_int_string(int ent) {
+    char *str = malloc(100 * sizeof(char));
+    str[0] = '\0'; 
+    sprintf(str, "%d", ent);
+    return str;
 }
 

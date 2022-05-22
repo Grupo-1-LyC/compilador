@@ -20,10 +20,8 @@ void crear_archivo_intermedia(void) {
 	}
 	// Escribimos el contenido del array en polaca inversa a un archivo con separador por comas
 	for(x=0; x<1000; x++){
-        if(x == 0)
-            fprintf(fp, "%s", polaca_inversa[x].valor);
-        else if(polaca_inversa[x].posicion_ocupada)
-            fprintf(fp, ",%s", polaca_inversa[x].valor);
+        if(polaca_inversa[x].posicion_ocupada)
+            fprintf(fp, "%d | %s\n", x, polaca_inversa[x].valor);
         else
             break;
 	}
@@ -31,6 +29,14 @@ void crear_archivo_intermedia(void) {
 	
     printf("\n\nSe ha cerrado el archivo y la Notacion Intermedia Polaca Inversa fue cargada sin errores.\n");
         
+}
+
+int posicion_actual(void) {
+    for(int x=0; x<1000; x++){
+        if(!polaca_inversa[x].posicion_ocupada){
+            return x;
+        }
+    }
 }
 
 void insertar_en_polaca(char *valor) {
@@ -41,4 +47,8 @@ void insertar_en_polaca(char *valor) {
             break;
         }
     }
+}
+
+void insertar_en_polaca_posicion(int pos, char *valor) {
+    strcpy(polaca_inversa[pos].valor, valor);
 }
