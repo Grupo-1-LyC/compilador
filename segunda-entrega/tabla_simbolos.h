@@ -23,10 +23,10 @@ void crear_archivo_ts(void) {
 		fputs ("File error",stderr); 
 		exit (1);
 	}
-	    
+	fprintf(fp, "NOMBRE\t|\tTIPO\t|\tVALOR\t|\tLONGITUD\n");
 	for(x=0; x<100; x++){
         if(tabla_simbolos[x].posicion_ocupada)
-            fprintf(fp, "%s\t%s\t%s\t%d\n", tabla_simbolos[x].nombre, tabla_simbolos[x].tipo, tabla_simbolos[x].valor, tabla_simbolos[x].longitud);
+            fprintf(fp, "%s\t|\t%s\t|\t%s\t|\t%d\n", tabla_simbolos[x].nombre, tabla_simbolos[x].tipo, tabla_simbolos[x].valor, tabla_simbolos[x].longitud);
         else
             break;
 	}
