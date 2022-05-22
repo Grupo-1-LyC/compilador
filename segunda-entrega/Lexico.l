@@ -81,6 +81,12 @@ PUNTO_COMA      ";"
 COMILLA_D       "\""
 COMENT_A        "-/"
 COMENT_C        "/-"
+PREGUNTA_A      "¿"
+PREGUNTA_C      "?"
+EXCLAMACION_A   "¡"
+EXCLAMACION_C   "!"
+ESPACIO         " "
+IGUAL           "="
 
 /*======Constantes======*/
 CTE_INT		    {OP_RES}?{DIGITO}+
@@ -91,7 +97,7 @@ CTE_STRING      {COMILLA_D}.*{COMILLA_D}
 ID			    {LETRA}({LETRA}|{GUION_BAJO}|{DIGITO})*
 
 /*======Comentario======*/
-COMENTARIO      {COMENT_A}.*{COMENT_C}
+COMENTARIO      {COMENT_A}({DIGITO}*|{LETRA}*|{GUION_BAJO}*|{PUNTO}*|{DOS_PUNTOS}*|{COMA}*|{PUNTO_COMA}*|{COMILLA_D}*|{ESPACIO}*|{PREGUNTA_A}*|{PREGUNTA_C}*|{EXCLAMACION_A}*|{EXCLAMACION_C}*|{PAR_A}*|{PAR_C}*|{COR_A}*|{COR_C}*|{LLAVE_A}*|{LLAVE_C}*|{OP_MAYOR}*|{OP_MENOR}*|{OP_SUM}*|{OP_RES}*|{OP_DIV}*|{OP_MUL}*|{IGUAL}*)*{COMENT_C}
 
 %%
 {PR_IF}             {return PR_IF;}
@@ -158,7 +164,8 @@ COMENTARIO      {COMENT_A}.*{COMENT_C}
                         }
                     }
 {CTE_STRING}        {
-                        if(strlen(yytext) > MAXSTRING) {
+                        // Chequeamos la longitud del string descontando las comillas dobles 
+                        if(strlen(yytext) - 2 > MAXSTRING) {
                             sprintf(msg_error, "Constante STRING %s excede la maxima longitud permitida. Maximo permitido: %d", yytext, MAXSTRING);
                             errorLexico(msg_error);
                         }
