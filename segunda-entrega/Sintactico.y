@@ -4,7 +4,7 @@
 #include "y.tab.h"
 #include "tabla_simbolos.h"
 #include "polaca_inversa.h"
-#include "PILAdinamica.h"
+#include "pila_dinamica.h"
 
 int yystopparser=0;
 FILE  *yyin;
@@ -254,22 +254,78 @@ bloque_else:
 
 // Separamos condiciones de seleccion de las de iteracion porque manejarán pilas distintas
 condicion_seleccion:
-    condicion {
+    condicion_simple {
+        apilar(&pila_seleccion, &pos_condicion);
+    } |
+    condicion_multiple_seleccion;
+
+condicion_iteracion:
+    condicion_simple {
+        apilar(&pila_iteracion, &pos_condicion);
+    } |
+    condicion_multiple_iteracion;
+
+lado_izquierdo_condicion_seleccion:
+    condicion_simple {
         apilar(&pila_seleccion, &pos_condicion);
     };
 
-condicion_iteracion:
-    condicion {
+lado_derecho_condicion_seleccion:
+    condicion_simple {
+        apilar(&pila_seleccion, &pos_condicion);
+    };
+
+condicion_multiple_seleccion:
+    lado_izquierdo_condicion_seleccion OP_AND lado_derecho_condicion_seleccion {
+        printf("\nRegla 'condicion_simple OP_AND condicion_simple' detectada");
+        int tope_pila;
+        desapilar(&pila_seleccion, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila_seleccion, &tope_pila);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+    } |
+    lado_izquierdo_condicion_seleccion OP_OR lado_derecho_condicion_seleccion {
+        printf("\nRegla 'condicion_simple OP_OR condicion_simple' detectada");
+        int tope_pila;
+        desapilar(&pila_seleccion, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila_seleccion, &tope_pila);
+        negar_comparador(tope_pila - 1);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(tope_pila + 1));
+    };
+
+lado_izquierdo_condicion_iteracion:
+    condicion_simple {
         apilar(&pila_iteracion, &pos_condicion);
     };
 
-condicion:
-    condicion_simple |
-    condicion_multiple;
+lado_derecho_condicion_iteracion:
+    condicion_simple {
+        apilar(&pila_iteracion, &pos_condicion);
+    };
 
-condicion_multiple:
-    condicion_simple OP_AND condicion_simple {printf("\nRegla 'condicion_simple OP_AND condicion_simple' detectada");} |
-    condicion_simple OP_OR condicion_simple {printf("\nRegla 'condicion_simple OP_OR condicion_simple' detectada");};
+condicion_multiple_iteracion:
+    lado_izquierdo_condicion_iteracion OP_AND lado_derecho_condicion_iteracion {
+        printf("\nRegla 'condicion_simple OP_AND condicion_simple' detectada");
+        int tope_pila;
+        desapilar(&pila_iteracion, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila_iteracion, &tope_pila);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+    } |
+    lado_izquierdo_condicion_iteracion OP_OR lado_derecho_condicion_iteracion {
+        printf("\nRegla 'condicion_simple OP_OR condicion_simple' detectada");
+        int tope_pila;
+        desapilar(&pila_iteracion, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila_iteracion, &tope_pila);
+        negar_comparador(tope_pila - 1);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(tope_pila + 1));
+    };
 
 condicion_simple:
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */

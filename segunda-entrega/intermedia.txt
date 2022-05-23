@@ -38,7 +38,7 @@
 37 | 576
 38 | CMP
 39 | BQE
-40 | 49
+40 | 78
 41 | 2
 42 | 12
 43 | 24
@@ -66,15 +66,15 @@
 65 | resultado_take4
 66 | WRITE
 67 | BI
-68 | 109
-69 | ET
+68 | 101
+69 | 108
 70 | 0
 71 | 32000
 72 | 1
 73 | 1
 74 | CMP
 75 | BNE
-76 | 108
+76 | 78
 77 | numero_entero
 78 | numero_flotante
 79 | *
@@ -83,13 +83,13 @@
 82 | numero_entero
 83 | 10
 84 | CMP
-85 | BLT
-86 | 
+85 | BGE
+86 | 87
 87 | numero_entero
 88 | 11
 89 | CMP
 90 | BLE
-91 | 101
+91 | 93
 92 | numero_entero
 93 | numero_flotante
 94 | /
@@ -98,7 +98,7 @@
 97 | numero_flotante
 98 | :=
 99 | BI
-100 | 107
+100 | 109
 101 | numero_entero
 102 | numero_entero
 103 | +
