@@ -27,16 +27,6 @@ int apilar(t_pila *p ,const int *d) {
     return 1;
 }
 
-int pila_vacia(const t_pila *p) {
-    return *p == NULL;
-}
-
-int pila_llena(const t_pila *p) {
-    void *nodo_aux=malloc(sizeof(t_nodo));
-    free(nodo_aux);
-    return nodo_aux == NULL;
-}
-
 int desapilar(t_pila *p, int *d) {
     t_nodo *a;
     if(*p==NULL)
@@ -56,13 +46,6 @@ void vaciar_pila(t_pila *p) {
         *p=a->sig;
         free(a);
     }
-}
-
-int ver_tope(t_pila *p, int *d) {
-    if(*p == NULL)
-        return PILA_VACIA;
-    *d = (*p)->dato;
-    return TODO_BIEN;
 }
 
 #endif // PILADINAMICA_H_INCLUDED

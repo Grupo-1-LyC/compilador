@@ -26,6 +26,7 @@ t_pila pila_iteracion;
 int yyerror();
 int yylex();
 char* conv_int_string(int);
+char* conv_float_string(double);
 %}
 
 %union {
@@ -161,9 +162,7 @@ factor:
     PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C {
         printf("\nRegla 'PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C' detectada");
         // Cast a string
-        char valorString[100];
-        sprintf(valorString, "%d", $5);
-        cargar_simbolo(valorString, "CTE_INT");
+        cargar_simbolo(conv_int_string($5), "CTE_INT");
     } |
     PAR_A expresion PAR_C {printf("\nRegla 'PAR_A expresion PAR_C' detectada");} |
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
@@ -187,17 +186,13 @@ lista:
 constante_numerica:
     CTE_INT {
         // Cast a string
-        char valorString[100];
-        sprintf(valorString, "%d", $1);
-        cargar_simbolo(valorString, "CTE_INT");
-        insertar_en_polaca(valorString);
+        cargar_simbolo(conv_int_string($1), "CTE_INT");
+        insertar_en_polaca(conv_int_string($1));
     } |
     CTE_FLOAT {
         // Cast a string
-        char valorString[100];
-        sprintf(valorString, "%lf", $1);
-        cargar_simbolo(valorString, "CTE_FLOAT");
-        insertar_en_polaca(valorString);
+        cargar_simbolo(conv_float_string($1), "CTE_FLOAT");
+        insertar_en_polaca(conv_float_string($1));
     };
 
 iteracion:
@@ -393,3 +388,9 @@ char* conv_int_string(int ent) {
     return str;
 }
 
+char* conv_float_string(double n) {
+    char *str = malloc(100 * sizeof(char));
+    str[0] = '\0'; 
+    sprintf(str, "%lf", n);
+    return str;
+}
