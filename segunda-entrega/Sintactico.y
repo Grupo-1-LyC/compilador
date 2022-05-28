@@ -19,9 +19,7 @@ char op_comparacion[4];
 int pos_condicion;
 
 //Pila donde guardaremos las posiciones donde aplicar saltos en selecciones
-t_pila pila_seleccion;
-//Pila donde guardaremos las posiciones donde aplicar saltos en iteraciones
-t_pila pila_iteracion;
+t_pila pila;
 
 int yyerror();
 int yylex();
@@ -131,19 +129,19 @@ sentencia:
     salida PUNTO_COMA |
     entrada PUNTO_COMA;
 
+id_op_asign:
+    ID OP_ASIGN {cargar_simbolo($1, "ID"); insertar_en_polaca($1);};
+
 asignacion:
-    ID OP_ASIGN expresion {
-        printf("\nRegla 'ID OP_ASIGN expresion' detectada"); 
-        cargar_simbolo($1, "ID"); 
-        insertar_en_polaca($1); 
+    id_op_asign expresion {
+        printf("\nRegla 'ID OP_ASIGN expresion' detectada");
         insertar_en_polaca(":=");
     } |
     /* Solo permitimos asignación de constantes string, no permitimos operaciones */
-    ID OP_ASIGN CTE_STRING {
+    id_op_asign CTE_STRING {
         printf("\nRegla 'ID OP_ASIGN CTE_STRING' detectada"); 
-        cargar_simbolo($1, "ID"); 
-        cargar_simbolo($3, "CTE_STRING"); 
-        insertar_en_polaca($1); 
+        cargar_simbolo($2, "CTE_STRING"); 
+        insertar_en_polaca($2); 
         insertar_en_polaca(":=");
     };
 
@@ -195,131 +193,131 @@ constante_numerica:
         insertar_en_polaca(conv_float_string($1));
     };
 
-iteracion:
+while:
     PR_WHILE {
         printf("\nRegla 'PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");
         int pos = posicion_actual();
-        apilar(&pila_iteracion, &pos);
+        apilar(&pila, &pos);
         insertar_en_polaca("ET");
-    } PAR_A condicion_iteracion PAR_C cuerpo_iteracion;
+    };
 
-// El cuerpo de la iteracion se pone en una regla gramática aparte de la iteracion por limitaciones de Bison
-// Bison da error si se tiene más de una acción semántica en una regla
-cuerpo_iteracion:
-    LLAVE_A programa LLAVE_C {
+iteracion:
+    while PAR_A condicion_simple PAR_C LLAVE_A programa LLAVE_C {
         insertar_en_polaca("BI");
         int tope_pila;
-        desapilar(&pila_iteracion, &tope_pila);
+        desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
         insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-        desapilar(&pila_iteracion, &tope_pila);
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
+    } |
+    while PAR_A condicion_simple OP_AND condicion_simple PAR_C LLAVE_A programa LLAVE_C {
+        insertar_en_polaca("BI");
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
+    } |
+    while PAR_A condicion_simple OP_OR condicion_simple PAR_C LLAVE_A programa LLAVE_C {
+        insertar_en_polaca("BI");
+        int tope_pila_izq;
+        int tope_pila_der;
+        int tope_pila;
+        desapilar(&pila, &tope_pila_der);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila_der, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila_izq);
+        negar_comparador(tope_pila_izq - 1);
+        insertar_en_polaca_posicion(tope_pila_izq, conv_int_string(tope_pila_der + 1));
+        desapilar(&pila, &tope_pila);
         insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
     };
 
 seleccion:
-    PR_IF PAR_A condicion_seleccion PAR_C LLAVE_A programa LLAVE_C {
+    PR_IF PAR_A condicion_simple PAR_C LLAVE_A programa LLAVE_C {
         printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");
         int tope_pila;
-        desapilar(&pila_seleccion, &tope_pila);
+        desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
         insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
     } |
-    PR_IF PAR_A condicion_seleccion PAR_C LLAVE_A programa LLAVE_C
+    PR_IF PAR_A condicion_simple OP_AND condicion_simple PAR_C LLAVE_A programa LLAVE_C
+    {
+        printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+    } |
+    PR_IF PAR_A condicion_simple OP_OR condicion_simple PAR_C LLAVE_A programa LLAVE_C
+    {
+        printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
+        int tope_pila_izq;
+        int tope_pila_der;
+        desapilar(&pila, &tope_pila_der);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila_der, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila_izq);
+        negar_comparador(tope_pila_izq - 1);
+        insertar_en_polaca_posicion(tope_pila_izq, conv_int_string(tope_pila_der + 1));
+    } |
+    PR_IF PAR_A condicion_simple PAR_C LLAVE_A programa LLAVE_C
     {
         printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
         insertar_en_polaca("BI");
         int tope_pila;
-        desapilar(&pila_seleccion, &tope_pila);
+        desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
         insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-        apilar(&pila_seleccion, &pos);
+        apilar(&pila, &pos);
         insertar_en_polaca("");
     }
-    bloque_else;
+    bloque_else |
+    PR_IF PAR_A condicion_simple OP_AND condicion_simple PAR_C LLAVE_A programa LLAVE_C
+    {
+        printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
+        insertar_en_polaca("BI");
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        apilar(&pila, &pos);
+        insertar_en_polaca("");
+    }
+    bloque_else |
+    PR_IF PAR_A condicion_simple OP_OR condicion_simple PAR_C LLAVE_A programa LLAVE_C
+    {
+        printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
+        insertar_en_polaca("BI");
+        int tope_pila_izq;
+        int tope_pila_der;
+        desapilar(&pila, &tope_pila_der);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila_der, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila_izq);
+        negar_comparador(tope_pila_izq - 1);
+        insertar_en_polaca_posicion(tope_pila_izq, conv_int_string(tope_pila_der + 1));
+        apilar(&pila, &pos);
+        insertar_en_polaca("");
+    }
+    bloque_else;;
 
 // El else se pone en una regla gramática aparte de la seleccion por limitaciones de Bison
 // Bison da error si se tiene más de una acción semántica en una regla
 bloque_else: 
     PR_ELSE LLAVE_A programa LLAVE_C { 
         int tope_pila;
-        desapilar(&pila_seleccion, &tope_pila);
+        desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-    };
-
-// Separamos condiciones de seleccion de las de iteracion porque manejarán pilas distintas
-condicion_seleccion:
-    condicion_simple {
-        apilar(&pila_seleccion, &pos_condicion);
-    } |
-    condicion_multiple_seleccion;
-
-condicion_iteracion:
-    condicion_simple {
-        apilar(&pila_iteracion, &pos_condicion);
-    } |
-    condicion_multiple_iteracion;
-
-lado_izquierdo_condicion_seleccion:
-    condicion_simple {
-        apilar(&pila_seleccion, &pos_condicion);
-    };
-
-lado_derecho_condicion_seleccion:
-    condicion_simple {
-        apilar(&pila_seleccion, &pos_condicion);
-    };
-
-condicion_multiple_seleccion:
-    lado_izquierdo_condicion_seleccion OP_AND lado_derecho_condicion_seleccion {
-        printf("\nRegla 'condicion_simple OP_AND condicion_simple' detectada");
-        int tope_pila;
-        desapilar(&pila_seleccion, &tope_pila);
-        int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-        desapilar(&pila_seleccion, &tope_pila);
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-    } |
-    lado_izquierdo_condicion_seleccion OP_OR lado_derecho_condicion_seleccion {
-        printf("\nRegla 'condicion_simple OP_OR condicion_simple' detectada");
-        int tope_pila;
-        desapilar(&pila_seleccion, &tope_pila);
-        int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-        desapilar(&pila_seleccion, &tope_pila);
-        negar_comparador(tope_pila - 1);
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(tope_pila + 1));
-    };
-
-lado_izquierdo_condicion_iteracion:
-    condicion_simple {
-        apilar(&pila_iteracion, &pos_condicion);
-    };
-
-lado_derecho_condicion_iteracion:
-    condicion_simple {
-        apilar(&pila_iteracion, &pos_condicion);
-    };
-
-condicion_multiple_iteracion:
-    lado_izquierdo_condicion_iteracion OP_AND lado_derecho_condicion_iteracion {
-        printf("\nRegla 'condicion_simple OP_AND condicion_simple' detectada");
-        int tope_pila;
-        desapilar(&pila_iteracion, &tope_pila);
-        int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-        desapilar(&pila_iteracion, &tope_pila);
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-    } |
-    lado_izquierdo_condicion_iteracion OP_OR lado_derecho_condicion_iteracion {
-        printf("\nRegla 'condicion_simple OP_OR condicion_simple' detectada");
-        int tope_pila;
-        desapilar(&pila_iteracion, &tope_pila);
-        int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
-        desapilar(&pila_iteracion, &tope_pila);
-        negar_comparador(tope_pila - 1);
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(tope_pila + 1));
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos));
     };
 
 condicion_simple:
@@ -335,6 +333,7 @@ condicion_simple:
         insertar_en_polaca("CMP");
         insertar_en_polaca(op_comparacion);
         pos_condicion = posicion_actual();
+        apilar(&pila, &pos_condicion);
         insertar_en_polaca("");
     };
 
@@ -366,12 +365,10 @@ int main(int argc, char *argv[]){
     }
     else{
         //Inicializamos las pilas donde guardaremos las posiciones donde aplicar saltos
-        crear_pila(&pila_seleccion);
-        crear_pila(&pila_iteracion);
+        crear_pila(&pila);
         yyparse();
     }
-    vaciar_pila(&pila_seleccion);
-    vaciar_pila(&pila_iteracion);
+    vaciar_pila(&pila);
     fclose(yyin);
     return 0;
 }
