@@ -1,11 +1,2 @@
-DECVAR
-numero_entero : INTEGER
-ENDDEC
-IF(numero_entero >= 4 OR numero_entero <= 5){
-    WHILE(numero_entero > 4 OR numero_entero >= 5){
-        numero_entero := numero_entero - 1;
-    }
-}
-ELSE{
-    numero_entero := numero_entero * numero_flotante;
-}
+resultado_take1 := TAKE(+ ; 0 ; [2 ; 12 ; 24 ; 48]); -/ Resultado: 14 /-
+resultado_take1 := 0;

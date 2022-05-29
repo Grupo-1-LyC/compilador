@@ -14,6 +14,8 @@ FILE  *yyin;
 //que el operador quede antes que el segundo operando en la notación polaca
 char op_comparacion[4];
 
+char op_matematico[2];
+
 //Variable global para guardar la posicion de una condicion en el array de polaca
 //y usarla en cada implementacion de una condicion (seleccion o iteracion)
 int pos_condicion;
@@ -24,8 +26,11 @@ t_pila pila;
 //Pila para asignar los tipos a las variables
 t_cpila pila_tipos;
 
-//Defino una variable para guardar el lecema que voy a desapilar de pila_tipos
+//Defino una variable para guardar el lexema que voy a desapilar de pila_tipos
 char lexema_guardado[100];
+
+int cantidad_take;
+int contador_take;
 
 int yyerror();
 int yylex();
@@ -175,12 +180,24 @@ termino:
     termino OP_DIV factor {printf("\nRegla 'termino OP_DIV factor' detectada"); insertar_en_polaca("/");} |
     factor;
 
+constante_take:
+    CTE_INT {
+        cantidad_take = $1;
+        contador_take = $1;
+        // Cast a string
+        cargar_simbolo(conv_int_string($1), "CTE_INT");
+        if(cantidad_take == 0){
+            insertar_en_polaca("0");
+        }
+    };
+
 factor:
     /* Según la sintaxis CTE_INT podría ser un número mayor o igual a la cantidad de constantes numericas de la lista pero consideramos que eso es un problema semántico */
-    PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C {
+    PR_TAKE PAR_A operador_matematico PUNTO_COMA constante_take PUNTO_COMA array PAR_C {
         printf("\nRegla 'PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C' detectada");
-        // Cast a string
-        cargar_simbolo(conv_int_string($5), "CTE_INT");
+        for(int i=1; i < cantidad_take; i++){
+            insertar_en_polaca(op_matematico);
+        }
     } |
     PAR_A expresion PAR_C {printf("\nRegla 'PAR_A expresion PAR_C' detectada");} |
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
@@ -188,18 +205,18 @@ factor:
     constante_numerica;
 
 operador_matematico:
-    OP_SUM |
-    OP_RES |
-    OP_MUL |
-    OP_DIV;
+    OP_SUM {strcpy(op_matematico, "+");}|
+    OP_RES {strcpy(op_matematico, "-");}|
+    OP_MUL {strcpy(op_matematico, "*");}|
+    OP_DIV {strcpy(op_matematico, "/");};
 
 array:
     COR_A COR_C {printf("\nRegla 'COR_A COR_C' detectada");} |
     COR_A lista COR_C {printf("\nRegla 'COR_A lista COR_C' detectada");};
 
 lista:
-    constante_numerica |
-    lista PUNTO_COMA constante_numerica {printf("\nRegla 'lista PUNTO_COMA constante_numerica' detectada");};
+    constante_numerica_take |
+    lista PUNTO_COMA constante_numerica_take {printf("\nRegla 'lista PUNTO_COMA constante_numerica' detectada");};
 
 constante_numerica:
     CTE_INT {
@@ -211,6 +228,24 @@ constante_numerica:
         // Cast a string
         cargar_simbolo(conv_float_string($1), "CTE_FLOAT");
         insertar_en_polaca(conv_float_string($1));
+    };
+
+constante_numerica_take:
+    CTE_INT {
+        // Cast a string
+        if(contador_take != 0){
+            cargar_simbolo(conv_int_string($1), "CTE_INT");
+            insertar_en_polaca(conv_int_string($1));
+            contador_take--;
+        }
+    } |
+    CTE_FLOAT {
+        // Cast a string
+        if(contador_take != 0){
+            cargar_simbolo(conv_float_string($1), "CTE_FLOAT");
+            insertar_en_polaca(conv_float_string($1));
+            contador_take--;
+        }
     };
 
 while:
@@ -255,6 +290,17 @@ iteracion:
         insertar_en_polaca_posicion(tope_pila_izq, conv_int_string(tope_pila_der + 1));
         desapilar(&pila, &tope_pila);
         insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
+    } |
+    while PAR_A between PAR_C LLAVE_A programa LLAVE_C {
+        insertar_en_polaca("BI");
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
     };
 
 seleccion:
@@ -286,6 +332,16 @@ seleccion:
         desapilar(&pila, &tope_pila_izq);
         negar_comparador(tope_pila_izq - 1);
         insertar_en_polaca_posicion(tope_pila_izq, conv_int_string(tope_pila_der + 1));
+    } |
+    PR_IF PAR_A between PAR_C LLAVE_A programa LLAVE_C
+    {
+        printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
     } |
     PR_IF PAR_A condicion_simple PAR_C LLAVE_A programa LLAVE_C
     {
@@ -328,7 +384,21 @@ seleccion:
         apilar(&pila, &pos);
         insertar_en_polaca("");
     }
-    bloque_else;;
+    bloque_else |
+    PR_IF PAR_A between PAR_C LLAVE_A programa LLAVE_C
+    {
+        printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
+        insertar_en_polaca("BI");
+        int tope_pila;
+        desapilar(&pila, &tope_pila);
+        int pos = posicion_actual();
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        desapilar(&pila, &tope_pila);
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        apilar(&pila, &pos);
+        insertar_en_polaca("");
+    }
+    bloque_else;
 
 // El else se pone en una regla gramática aparte de la seleccion por limitaciones de Bison
 // Bison da error si se tiene más de una acción semántica en una regla
@@ -340,14 +410,47 @@ bloque_else:
         insertar_en_polaca_posicion(tope_pila, conv_int_string(pos));
     };
 
-condicion_simple:
+id_between:
+    ID {
+        strcpy(lexema_guardado, $1);
+    };
+
+limite_inferior_between:
+    expresion {
+        insertar_en_polaca(lexema_guardado);
+        insertar_en_polaca("CMP");
+        insertar_en_polaca("BGT");
+        pos_condicion = posicion_actual();
+        apilar(&pila, &pos_condicion);
+        insertar_en_polaca("");
+    };
+
+limite_superior_between:
+    expresion {
+        insertar_en_polaca(lexema_guardado);
+        insertar_en_polaca("CMP");
+        insertar_en_polaca("BLT");
+        pos_condicion = posicion_actual();
+        apilar(&pila, &pos_condicion);
+        insertar_en_polaca("");
+    };
+
+between:
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
-    PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C {
-        printf("\nRegla 'PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C' detectada"); 
-        cargar_simbolo($3, "ID");
+    PR_BETWEEN PAR_A id_between COMA COR_A limite_inferior_between PUNTO_COMA limite_superior_between COR_C PAR_C {
+        printf("\nRegla 'PR_BETWEEN PAR_A ID COMA COR_A expresion PUNTO_COMA expresion COR_C PAR_C' detectada");
+    };
+
+condicion_simple:
+    OP_NOT expresion operador_comparacion expresion {
+        printf("\nRegla 'OP_NOT condicion_simple' detectada");
+        insertar_en_polaca("CMP");
+        insertar_en_polaca(op_comparacion);
+        pos_condicion = posicion_actual();
+        apilar(&pila, &pos_condicion);
+        negar_comparador(pos_condicion - 1);
+        insertar_en_polaca("");
     } |
-    /* Hacemos recursividad a derecha porque el NOT tiene que estar a la derecha de la condición y permitimos múltiples negaciones */
-    OP_NOT condicion_simple {printf("\nRegla 'OP_NOT condicion_simple' detectada");} |
     expresion operador_comparacion expresion {
         printf("\nRegla 'expresion operador_comparacion expresion' detectada");
         insertar_en_polaca("CMP");
