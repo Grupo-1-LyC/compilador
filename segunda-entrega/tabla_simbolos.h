@@ -80,3 +80,19 @@ int cargar_simbolo(char *nombre, char *val){
 		
 	return x;
  }
+
+int actualizar_tipo(char *nombre, char *val){
+
+    for(int x=0; x<100; x++){
+        // Me fijo si el 'nombre' que me pasaron ya esta en la tabla.
+        // En caso de estar en la tabla le acambio el tipo por el tipo que me pasaron
+        if(tabla_simbolos[x].posicion_ocupada==1){
+            if(strcmp(nombre, tabla_simbolos[x].nombre)==0){
+                strcpy(tabla_simbolos[x].tipo, val);
+                return x;
+            }
+        }
+    }
+
+    return -1;
+}

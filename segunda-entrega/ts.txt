@@ -1,5 +1,5 @@
 NOMBRE	|	TIPO	|	VALOR	|	LONGITUD
-numero_entero	|	ID	|		|	0
+numero_entero	|	ID_INTEGER	|		|	0
 _4	|	CTE_INT	|	4	|	0
 _5	|	CTE_INT	|	5	|	0
 _4	|	CTE_INT	|	4	|	0

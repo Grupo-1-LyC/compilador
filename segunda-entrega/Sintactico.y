@@ -21,6 +21,12 @@ int pos_condicion;
 //Pila donde guardaremos las posiciones donde aplicar saltos en selecciones
 t_pila pila;
 
+//Pila para asignar los tipos a las variables
+t_cpila pila_tipos;
+
+//Defino una variable para guardar el lecema que voy a desapilar de pila_tipos
+char lexema_guardado[100];
+
 int yyerror();
 int yylex();
 char* conv_int_string(int);
@@ -107,13 +113,27 @@ declaracion_variables:
     declaracion_variables lista_variables DOS_PUNTOS tipo_dato {printf("\nRegla 'declaracion_variables lista_variables DOS_PUNTOS tipo_dato' detectada");};
 
 lista_variables:
-    ID {cargar_simbolo($1, "ID");} |
-    lista_variables COMA ID {printf("\nRegla 'lista_variables COMA ID' detectada"); cargar_simbolo($3, "ID");};
+    ID {cargar_simbolo($1, "ID"); apilar_char(&pila_tipos, $1);} |
+    lista_variables COMA ID {printf("\nRegla 'lista_variables COMA ID' detectada"); cargar_simbolo($3, "ID"); apilar_char(&pila_tipos, $3);};
 
 tipo_dato:
-    PR_INTEGER | 
-    PR_FLOAT | 
-    PR_STRING;
+    // Cuando se detecta algun tipo de dato entonces actualizo los IDs de la tabla de simbolos
+    // que tenga apilados con el tipo de dato detectado
+    PR_INTEGER {
+        while(desapilar_char(&pila_tipos, lexema_guardado)){
+            actualizar_tipo(lexema_guardado, "ID_INTEGER");
+        };
+    } | 
+    PR_FLOAT {
+        while(desapilar_char(&pila_tipos, lexema_guardado)){
+            actualizar_tipo(lexema_guardado, "ID_FLOAT");
+        };
+    } | 
+    PR_STRING {        
+        while(desapilar_char(&pila_tipos, lexema_guardado)){
+            actualizar_tipo(lexema_guardado, "ID_STRING");
+        };
+    };
 
 programa: 
     bloque;
@@ -366,6 +386,7 @@ int main(int argc, char *argv[]){
     else{
         //Inicializamos las pilas donde guardaremos las posiciones donde aplicar saltos
         crear_pila(&pila);
+        crear_pila_char(&pila_tipos);
         yyparse();
     }
     vaciar_pila(&pila);

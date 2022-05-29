@@ -1,4 +1,6 @@
-
+DECVAR
+numero_entero : INTEGER
+ENDDEC
 IF(numero_entero >= 4 OR numero_entero <= 5){
     WHILE(numero_entero > 4 OR numero_entero >= 5){
         numero_entero := numero_entero - 1;
