@@ -36,6 +36,7 @@ int yyerror();
 int yylex();
 char* conv_int_string(int);
 char* conv_float_string(double);
+void errorSemantico(char*);
 %}
 
 %union {
@@ -126,17 +127,17 @@ tipo_dato:
     // que tenga apilados con el tipo de dato detectado
     PR_INTEGER {
         while(desapilar_char(&pila_tipos, lexema_guardado)){
-            actualizar_tipo(lexema_guardado, "ID_INTEGER");
+            actualizar_tipo(lexema_guardado, "INT");
         };
     } | 
     PR_FLOAT {
         while(desapilar_char(&pila_tipos, lexema_guardado)){
-            actualizar_tipo(lexema_guardado, "ID_FLOAT");
+            actualizar_tipo(lexema_guardado, "FLOAT");
         };
     } | 
     PR_STRING {        
         while(desapilar_char(&pila_tipos, lexema_guardado)){
-            actualizar_tipo(lexema_guardado, "ID_STRING");
+            actualizar_tipo(lexema_guardado, "STRING");
         };
     };
 
@@ -155,16 +156,25 @@ sentencia:
     entrada PUNTO_COMA;
 
 id_op_asign:
-    ID OP_ASIGN {cargar_simbolo($1, "ID"); insertar_en_polaca($1);};
+    ID OP_ASIGN {cargar_simbolo($1, "ID"); insertar_en_polaca($1); strcpy(lexema_guardado, $1);
+};
 
 asignacion:
     id_op_asign expresion {
         printf("\nRegla 'ID OP_ASIGN expresion' detectada");
+        /* Me fijo si el tipo es diferente a INT o FLOAT*/
+        if(!lexema_es_del_tipo(lexema_guardado, "INT") && !lexema_es_del_tipo(lexema_guardado, "FLOAT")){
+            errorSemantico("No se permiten asignaciones entre strings y int/float");
+        }
         insertar_en_polaca(":=");
     } |
     /* Solo permitimos asignación de constantes string, no permitimos operaciones */
     id_op_asign CTE_STRING {
-        printf("\nRegla 'ID OP_ASIGN CTE_STRING' detectada"); 
+        printf("\nRegla 'ID OP_ASIGN CTE_STRING' detectada");
+        /* Si lexema_es_del_tipo es 0 entonces significa que el lexama es de un tipo diferente a STRING*/
+        if(!lexema_es_del_tipo(lexema_guardado, "STRING")){
+            errorSemantico("No se permiten asignaciones entre int/float y strings");
+        }
         cargar_simbolo($2, "CTE_STRING"); 
         insertar_en_polaca($2); 
         insertar_en_polaca(":=");
@@ -201,7 +211,14 @@ factor:
     } |
     PAR_A expresion PAR_C {printf("\nRegla 'PAR_A expresion PAR_C' detectada");} |
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
-    ID {cargar_simbolo($1, "ID"); insertar_en_polaca($1);} |
+    ID {
+        cargar_simbolo($1, "ID"); 
+        insertar_en_polaca($1);         
+        /* Me fijo si el tipo es diferente a INT o FLOAT*/
+        if(!lexema_es_del_tipo($1, "INT") && !lexema_es_del_tipo($1, "FLOAT")){
+            errorSemantico("No se permiten asignaciones entre int/float y strings");
+        }
+    } |
     constante_numerica;
 
 operador_matematico:
@@ -514,4 +531,9 @@ char* conv_float_string(double n) {
     str[0] = '\0'; 
     sprintf(str, "%lf", n);
     return str;
+}
+
+void errorSemantico(char *error) {
+    printf("\n¡ERROR SEMANTICO!: %s\n", error);
+    exit(2);
 }

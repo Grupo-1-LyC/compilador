@@ -1,2 +1,7 @@
-resultado_take1 := TAKE(+ ; 0 ; [2 ; 12 ; 24 ; 48]); -/ Resultado: 14 /-
+DECVAR
+resultado_take1 : INTEGER
+resultado_take2 : STRING
+ENDDEC
+
+resultado_take2 := 2*4+resultado_take1
 resultado_take1 := 0;

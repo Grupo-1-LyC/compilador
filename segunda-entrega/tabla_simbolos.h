@@ -71,6 +71,10 @@ int cargar_simbolo(char *nombre, char *val){
             else{
                 strcpy(tabla_simbolos[x].nombre, nombre);
             }
+            if(strstr(val, "CTE")){
+                // Se hace esto para sacarle el CTE_ al tipo
+                val = val+4;
+            }
             strcpy(tabla_simbolos[x].tipo, val);
             tabla_simbolos[x].posicion_ocupada = 1;
 
@@ -95,4 +99,24 @@ int actualizar_tipo(char *nombre, char *val){
     }
 
     return -1;
+}
+
+int lexema_es_del_tipo(char *nombre, char *val){
+
+    for(int x=0; x<100; x++){
+        // Me fijo si el 'nombre' que me pasaron ya esta en la tabla.
+        // En caso de estar en la tabla le acambio el tipo por el tipo que me pasaron
+        if(tabla_simbolos[x].posicion_ocupada==1){
+            if(strcmp(nombre, tabla_simbolos[x].nombre)==0){
+                // Comparo el tipo de dato que me pasaron con el tipo de dato del 
+                //lexema que me pasaron, si son iguales retorno 1 en caso contrario retorno 0
+                if(strcmp(val, tabla_simbolos[x].tipo)==0){
+                    return 1;
+                }
+                return 0;
+            }
+        }
+    }
+
+    return 0;
 }
