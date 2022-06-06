@@ -205,6 +205,10 @@ factor:
     /* Según la sintaxis CTE_INT podría ser un número mayor o igual a la cantidad de constantes numericas de la lista pero consideramos que eso es un problema semántico */
     PR_TAKE PAR_A operador_matematico PUNTO_COMA constante_take PUNTO_COMA array PAR_C {
         printf("\nRegla 'PR_TAKE PAR_A operador_matematico PUNTO_COMA CTE_INT PUNTO_COMA array PAR_C' detectada");
+	// Si el contador_take es positivo significa que la cantidad de constantes que me pasaron son menores a constante_take, por lo que hay que tirar error
+	if( contador_take>0 ){
+	    errorSemantico("La cantidad de elementos en la lista de constantes del take es menor a la cantidad de elementos que se quiere procesar");
+	}
         for(int i=1; i < cantidad_take; i++){
             insertar_en_polaca(op_matematico);
         }
