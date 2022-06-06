@@ -428,8 +428,12 @@ bloque_else:
     };
 
 id_between:
-    ID {
+    ID {      
         strcpy(lexema_guardado, $1);
+	// Si la variable no es del tipo INT y no es del tipo FLOAT entonces es un error semantico
+	if(!lexema_es_del_tipo(lexema_guardado, "INT") && !lexema_es_del_tipo($1, "FLOAT")){
+            errorSemantico("La variable del metodo BETWEEN tiene que ser una variable del tipo INT o FLOAT");
+        }
     };
 
 limite_inferior_between:
