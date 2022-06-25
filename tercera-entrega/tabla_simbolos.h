@@ -4,6 +4,9 @@
 #include <stdio.h>
 
 int cargar_simbolo(char*, char*);
+int actualizar_tipo(char*, char*);
+int lexema_es_del_tipo(char*, char*);
+int lexema_esta_en_tabla(char*);
 
 typedef struct {
     char nombre[100]; // Lexema que identifica el token
@@ -114,6 +117,21 @@ int lexema_es_del_tipo(char *nombre, char *val){
                     return 1;
                 }
                 return 0;
+            }
+        }
+    }
+
+    return 0;
+}
+
+int lexema_esta_en_tabla(char *nombre){
+
+    for(int x=0; x<100; x++){
+        // Me fijo si el 'nombre' que me pasaron ya esta en la tabla.
+        // En caso de estar en la tabla retorno 1 en caso contrario retorno 0
+        if(tabla_simbolos[x].posicion_ocupada==1){
+            if(strcmp(nombre, tabla_simbolos[x].nombre)==0){
+                return 1;
             }
         }
     }

@@ -120,8 +120,19 @@ declaracion_variables:
     declaracion_variables lista_variables DOS_PUNTOS tipo_dato {printf("\nRegla 'declaracion_variables lista_variables DOS_PUNTOS tipo_dato' detectada");};
 
 lista_variables:
-    ID {cargar_simbolo($1, "ID"); apilar_char(&pila_tipos, $1);} |
-    lista_variables COMA ID {printf("\nRegla 'lista_variables COMA ID' detectada"); cargar_simbolo($3, "ID"); apilar_char(&pila_tipos, $3);};
+    ID {
+        if(lexema_esta_en_tabla($1)){
+            errorSemantico("La variable que esta queriendo declarar ya se encuentra declarada");
+        };
+        cargar_simbolo($1, "ID"); 
+        apilar_char(&pila_tipos, $1);} |
+    lista_variables COMA ID {
+        printf("\nRegla 'lista_variables COMA ID' detectada"); 
+        if(lexema_esta_en_tabla($3)){
+            errorSemantico("La variable que esta queriendo declarar ya se encuentra declarada");
+        };
+        cargar_simbolo($3, "ID"); 
+        apilar_char(&pila_tipos, $3);};
 
 tipo_dato:
     // Cuando se detecta algun tipo de dato entonces actualizo los IDs de la tabla de simbolos
