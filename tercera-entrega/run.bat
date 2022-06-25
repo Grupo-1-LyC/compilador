@@ -2,12 +2,12 @@
 flex Lexico.l
 bison -dyv Sintactico.y
 
-gcc lex.yy.c y.tab.c -o compilador -std=gnu99
+gcc lex.yy.c y.tab.c -o Grupo1 -std=gnu99
 
-compilador.exe prueba.txt
+Grupo1.exe prueba.txt
 
 @echo off
-del compilador.exe
+del Grupo1.exe
 del lex.yy.c
 del y.tab.c
 del y.tab.h

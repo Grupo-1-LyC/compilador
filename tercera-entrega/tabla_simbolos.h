@@ -18,7 +18,7 @@ typedef struct {
 
 t_simbolo tabla_simbolos[100];
 
-void crear_archivo_ts(void) {
+t_simbolo* crear_archivo_ts(void) {
 	FILE *fp;
 	int x;
 	fp = fopen("ts.txt", "w+");
@@ -36,7 +36,7 @@ void crear_archivo_ts(void) {
 	fclose(fp);
 	
     printf("\n\nSe ha cerrado el archivo y la Tabla de Simbolos fue cargada sin errores.\n");
-        
+    return tabla_simbolos;
 }
 
 int cargar_simbolo(char *nombre, char *val){

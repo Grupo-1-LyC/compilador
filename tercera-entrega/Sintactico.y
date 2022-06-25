@@ -2,9 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "y.tab.h"
-#include "tabla_simbolos.h"
-#include "polaca_inversa.h"
 #include "pila_dinamica.h"
+#include "assembler.h"
 
 int yystopparser=0;
 FILE  *yyin;
@@ -111,8 +110,18 @@ void errorSemantico(char*);
 %%
 p:
     /* Establecemos que al principio del archivo se debe hacer la declaración de variables*/
-    decvar programa {printf("\nRegla 'decvar programa' detectada\n"); crear_archivo_ts(); crear_archivo_intermedia();} |
-    programa {printf("\nRegla 'programa' detectada\n"); crear_archivo_ts(); crear_archivo_intermedia();};
+    decvar programa {
+        printf("\nRegla 'decvar programa' detectada\n"); 
+        crear_archivo_ts(); 
+        crear_archivo_intermedia(); 
+        generar_assembler();
+    } |
+    programa {
+        printf("\nRegla 'programa' detectada\n"); 
+        crear_archivo_ts(); 
+        crear_archivo_intermedia(); 
+        generar_assembler();
+    };
 
 decvar:
     PR_DECVAR declaracion_variables PR_ENDDEC {printf("\nRegla 'PR_DECVAR declaracion_variables PR_ENDDEC' detectada");};
