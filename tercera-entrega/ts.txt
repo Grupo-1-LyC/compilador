@@ -1,0 +1,37 @@
+NOMBRE	|	TIPO	|	VALOR	|	LONGITUD
+numero_entero	|	INT	|		|	0
+resultado_take1	|	INT	|		|	0
+resultado_take3	|	INT	|		|	0
+resultado_take4	|	INT	|		|	0
+constante_string	|	STRING	|		|	0
+numero_flotante	|	FLOAT	|		|	0
+resultado_take2	|	FLOAT	|		|	0
+_"MAXI"	|	STRING	|	"MAXI"	|	4
+_0.000000	|	FLOAT	|	0.000000	|	0
+_"Esto es una constante string"	|	STRING	|	"Esto es una constante string"	|	28
+_5	|	INT	|	5	|	0
+_142.564000	|	FLOAT	|	142.564000	|	0
+_4	|	INT	|	4	|	0
+_4	|	INT	|	4	|	0
+_1	|	INT	|	1	|	0
+_3	|	INT	|	3	|	0
+_2	|	INT	|	2	|	0
+_12	|	INT	|	12	|	0
+_24	|	INT	|	24	|	0
+_576	|	INT	|	576	|	0
+_2	|	INT	|	2	|	0
+_2	|	INT	|	2	|	0
+_12	|	INT	|	12	|	0
+_3	|	INT	|	3	|	0
+_6.500000	|	FLOAT	|	6.500000	|	0
+_3	|	INT	|	3	|	0
+_2.500000	|	FLOAT	|	2.500000	|	0
+_4	|	INT	|	4	|	0
+_2	|	INT	|	2	|	0
+_-4	|	INT	|	-4	|	0
+_2	|	INT	|	2	|	0
+_0	|	INT	|	0	|	0
+_32000	|	INT	|	32000	|	0
+_10	|	INT	|	10	|	0
+_11	|	INT	|	11	|	0
+_2	|	INT	|	2	|	0
