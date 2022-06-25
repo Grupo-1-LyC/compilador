@@ -33,6 +33,8 @@ int cantidad_op;
 int cantidad_cte;
 int contador_take;
 
+char msg_error[100];
+
 int yyerror();
 int yylex();
 char* conv_int_string(int);
@@ -122,14 +124,16 @@ declaracion_variables:
 lista_variables:
     ID {
         if(lexema_esta_en_tabla($1)){
-            errorSemantico("La variable que esta queriendo declarar ya se encuentra declarada");
+            sprintf(msg_error, "La variable %s que esta queriendo declarar ya se encuentra declarada", $1);
+            errorSemantico(msg_error);
         };
         cargar_simbolo($1, "ID"); 
         apilar_char(&pila_tipos, $1);} |
     lista_variables COMA ID {
         printf("\nRegla 'lista_variables COMA ID' detectada"); 
         if(lexema_esta_en_tabla($3)){
-            errorSemantico("La variable que esta queriendo declarar ya se encuentra declarada");
+            sprintf(msg_error, "La variable %s que esta queriendo declarar ya se encuentra declarada", $3);
+            errorSemantico(msg_error);
         };
         cargar_simbolo($3, "ID"); 
         apilar_char(&pila_tipos, $3);};
@@ -168,7 +172,14 @@ sentencia:
     entrada PUNTO_COMA;
 
 id_op_asign:
-    ID OP_ASIGN {cargar_simbolo($1, "ID"); insertar_en_polaca($1); strcpy(lexema_guardado, $1);
+    ID OP_ASIGN {
+        if(!lexema_esta_en_tabla($1)){
+            sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $1);
+            errorSemantico(msg_error);
+        }
+        cargar_simbolo($1, "ID"); 
+        insertar_en_polaca($1); 
+        strcpy(lexema_guardado, $1);
 };
 
 asignacion:
@@ -226,12 +237,16 @@ factor:
     PAR_A expresion PAR_C {printf("\nRegla 'PAR_A expresion PAR_C' detectada");} |
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
     ID {
-        cargar_simbolo($1, "ID"); 
-        insertar_en_polaca($1);         
+        if(!lexema_esta_en_tabla($1)){
+            sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $1);
+            errorSemantico(msg_error);
+        }
         /* Me fijo si el tipo es diferente a INT o FLOAT*/
         if(!lexema_es_del_tipo($1, "INT") && !lexema_es_del_tipo($1, "FLOAT")){
             errorSemantico("No se permiten asignaciones entre int/float y strings");
         }
+        cargar_simbolo($1, "ID"); 
+        insertar_en_polaca($1);         
     } |
     constante_numerica;
 
@@ -450,12 +465,16 @@ bloque_else:
     };
 
 id_between:
-    ID {      
-        strcpy(lexema_guardado, $1);
-	// Si la variable no es del tipo INT y no es del tipo FLOAT entonces es un error semantico
-	if(!lexema_es_del_tipo(lexema_guardado, "INT") && !lexema_es_del_tipo($1, "FLOAT")){
+    ID {
+        if(!lexema_esta_en_tabla($1)){
+            sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $1);
+            errorSemantico(msg_error);
+        }     
+        // Si la variable no es del tipo INT y no es del tipo FLOAT entonces es un error semantico
+        if(!lexema_es_del_tipo(lexema_guardado, "INT") && !lexema_es_del_tipo($1, "FLOAT")){
             errorSemantico("La variable del metodo BETWEEN tiene que ser una variable del tipo INT o FLOAT");
         }
+        strcpy(lexema_guardado, $1);
     };
 
 limite_inferior_between:
@@ -515,10 +534,26 @@ salida:
     PR_WRITE mensaje {printf("\nRegla 'PR_WRITE mensaje' detectada"); insertar_en_polaca("WRITE");};
 
 entrada:   
-    PR_READ ID {printf("\nRegla 'PR_READ ID' detectada"); cargar_simbolo($2, "ID"); insertar_en_polaca($2); insertar_en_polaca("READ");};
+    PR_READ ID {
+        if(!lexema_esta_en_tabla($2)){
+            sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $2);
+            errorSemantico(msg_error);
+        }
+        printf("\nRegla 'PR_READ ID' detectada"); 
+        cargar_simbolo($2, "ID"); 
+        insertar_en_polaca($2); 
+        insertar_en_polaca("READ");
+    };
 
 mensaje:
-    ID {cargar_simbolo($1, "ID"); insertar_en_polaca($1);} |
+    ID {
+        if(!lexema_esta_en_tabla($1)){
+            sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $1);
+            errorSemantico(msg_error);
+        }
+        cargar_simbolo($1, "ID"); 
+        insertar_en_polaca($1);
+    } |
     constante_numerica |
     CTE_STRING {cargar_simbolo($1, "CTE_STRING"); insertar_en_polaca($1);};
 
