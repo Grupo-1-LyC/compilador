@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "y.tab.h"
-#include "pila_dinamica.h"
 #include "assembler.h"
 
 int yystopparser=0;
@@ -356,7 +355,7 @@ iteracion:
         int pos = posicion_actual();
         insertar_en_polaca_posicion(tope_pila_der, conv_int_string(pos + 1));
         desapilar(&pila, &tope_pila_izq);
-        negar_comparador(tope_pila_izq - 1);
+        negar_comparador(tope_pila_izq);
         insertar_en_polaca_posicion(tope_pila_izq, conv_int_string(tope_pila_der + 1));
         desapilar(&pila, &tope_pila);
         insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
@@ -379,7 +378,7 @@ seleccion:
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos));
     } |
     PR_IF PAR_A condicion_simple OP_AND condicion_simple PAR_C LLAVE_A programa LLAVE_C
     {
@@ -387,9 +386,9 @@ seleccion:
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos));
         desapilar(&pila, &tope_pila);
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos));
     } |
     PR_IF PAR_A condicion_simple OP_OR condicion_simple PAR_C LLAVE_A programa LLAVE_C
     {
@@ -398,9 +397,9 @@ seleccion:
         int tope_pila_der;
         desapilar(&pila, &tope_pila_der);
         int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila_der, conv_int_string(pos + 1));
+        insertar_en_polaca_posicion(tope_pila_der, conv_int_string(pos));
         desapilar(&pila, &tope_pila_izq);
-        negar_comparador(tope_pila_izq - 1);
+        negar_comparador(tope_pila_izq);
         insertar_en_polaca_posicion(tope_pila_izq, conv_int_string(tope_pila_der + 1));
     } |
     PR_IF PAR_A between PAR_C LLAVE_A programa LLAVE_C
@@ -409,9 +408,9 @@ seleccion:
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos));
         desapilar(&pila, &tope_pila);
-        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos + 1));
+        insertar_en_polaca_posicion(tope_pila, conv_int_string(pos));
     } |
     PR_IF PAR_A condicion_simple PAR_C LLAVE_A programa LLAVE_C
     {
@@ -449,7 +448,7 @@ seleccion:
         int pos = posicion_actual();
         insertar_en_polaca_posicion(tope_pila_der, conv_int_string(pos + 1));
         desapilar(&pila, &tope_pila_izq);
-        negar_comparador(tope_pila_izq - 1);
+        negar_comparador(tope_pila_izq);
         insertar_en_polaca_posicion(tope_pila_izq, conv_int_string(tope_pila_der + 1));
         apilar(&pila, &pos);
         insertar_en_polaca("");

@@ -6,8 +6,9 @@ resultado_take4	|	INT	|		|	0
 constante_string	|	STRING	|		|	0
 numero_flotante	|	FLOAT	|		|	0
 resultado_take2	|	FLOAT	|		|	0
+_"Escriba numero_entero"	|	STRING	|	"Escriba numero_entero"	|	21
 _"MAXI"	|	STRING	|	"MAXI"	|	4
-_0.000000	|	FLOAT	|	0.000000	|	0
+_-1.000000	|	FLOAT	|	-1.000000	|	0
 _"Esto es una constante string"	|	STRING	|	"Esto es una constante string"	|	28
 _5	|	INT	|	5	|	0
 _142.564000	|	FLOAT	|	142.564000	|	0

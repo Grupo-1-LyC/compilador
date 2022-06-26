@@ -4,9 +4,10 @@ numero_entero, resultado_take1, resultado_take3, resultado_take4 : INTEGER
 constante_string : STRING
 numero_flotante, resultado_take2 : FLOAT
 ENDDEC
+WRITE "Escriba numero_entero";
 READ numero_entero;
 constante_string := "MAXI";
-numero_flotante := 0.0;
+numero_flotante := -1.0;
 
 WRITE constante_string;
 WRITE "Esto es una constante string";
