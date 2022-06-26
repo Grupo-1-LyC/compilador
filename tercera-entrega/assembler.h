@@ -81,4 +81,27 @@ void generar_codigo_assembler(FILE* fp){
     fprintf(fp, "MOV EAX, @DATA\n");
     fprintf(fp, "MOV DS, EAX\n");
     fprintf(fp, "MOV ES, EAX\n\n");
+
+    int pos=0;
+    while(polaca_inversa[pos].posicion_ocupada == 1){
+
+        //Si esta en la tabla de simbolos significa que es un operando
+        // Hay que ver la forma de solucionar el caso de claves que estan en el array de la polaca pero no son variables ej ET
+        if(lexema_esta_en_tabla(polaca_inversa[pos].valor)){
+            fprintf(fp,"fld %s", polaca_inversa[pos].valor)
+        }
+        else{
+            if(polaca_inversa[pos].valor == '-')
+                fprintf(fp,"fsub")
+            if(polaca_inversa[pos].valor == '+')
+                fprintf(fp,"fsum")
+            if(polaca_inversa[pos].valor == '*')
+                fprintf(fp,"fmul")
+            if(polaca_inversa[pos].valor == '/')
+                fprintf(fp,"fdiv")
+            if(polaca_inversa[pos].valor == ':=')
+                fprintf(fp,"fsub")
+        }
+        pos++;
+    }
 }
