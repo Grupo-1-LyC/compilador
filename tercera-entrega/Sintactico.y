@@ -34,6 +34,8 @@ int contador_take;
 
 char msg_error[100];
 
+char cte_polaca[32];
+
 int yyerror();
 int yylex();
 char* conv_int_string(int);
@@ -132,7 +134,7 @@ declaracion_variables:
 
 lista_variables:
     ID {
-        if(lexema_esta_en_tabla($1)){
+        if(lexema_esta_en_tabla($1) != -1){
             sprintf(msg_error, "La variable %s que esta queriendo declarar ya se encuentra declarada", $1);
             errorSemantico(msg_error);
         };
@@ -140,7 +142,7 @@ lista_variables:
         apilar_char(&pila_tipos, $1);} |
     lista_variables COMA ID {
         printf("\nRegla 'lista_variables COMA ID' detectada"); 
-        if(lexema_esta_en_tabla($3)){
+        if(lexema_esta_en_tabla($3) != -1){
             sprintf(msg_error, "La variable %s que esta queriendo declarar ya se encuentra declarada", $3);
             errorSemantico(msg_error);
         };
@@ -182,7 +184,7 @@ sentencia:
 
 id_op_asign:
     ID OP_ASIGN {
-        if(!lexema_esta_en_tabla($1)){
+        if(lexema_esta_en_tabla($1) == -1){
             sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $1);
             errorSemantico(msg_error);
         }
@@ -207,8 +209,9 @@ asignacion:
         if(!lexema_es_del_tipo(lexema_guardado, "STRING")){
             errorSemantico("No se permiten asignaciones entre int/float y strings");
         }
-        cargar_simbolo($2, "CTE_STRING"); 
-        insertar_en_polaca($2); 
+        cargar_simbolo($2, "CTE_STRING");
+        sprintf(cte_polaca, "_%s", $2); 
+        insertar_en_polaca(cte_polaca); 
         insertar_en_polaca(":=");
     };
 
@@ -246,7 +249,7 @@ factor:
     PAR_A expresion PAR_C {printf("\nRegla 'PAR_A expresion PAR_C' detectada");} |
     /* Según la sintaxis ID podría ser un string pero consideramos que eso es un problema semántico */
     ID {
-        if(!lexema_esta_en_tabla($1)){
+        if(lexema_esta_en_tabla($1) == -1){
             sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $1);
             errorSemantico(msg_error);
         }
@@ -283,12 +286,14 @@ constante_numerica:
     CTE_INT {
         // Cast a string
         cargar_simbolo(conv_int_string($1), "CTE_INT");
-        insertar_en_polaca(conv_int_string($1));
+        sprintf(cte_polaca, "_%s", conv_int_string($1)); 
+        insertar_en_polaca(cte_polaca);
     } |
     CTE_FLOAT {
         // Cast a string
         cargar_simbolo(conv_float_string($1), "CTE_FLOAT");
-        insertar_en_polaca(conv_float_string($1));
+        sprintf(cte_polaca, "_%s", conv_float_string($1));
+        insertar_en_polaca(cte_polaca);
     };
 
 constante_numerica_take:
@@ -296,7 +301,8 @@ constante_numerica_take:
         // Cast a string
         if(contador_take != 0){
             cargar_simbolo(conv_int_string($1), "CTE_INT");
-            insertar_en_polaca(conv_int_string($1));
+            sprintf(cte_polaca, "_%s", conv_int_string($1)); 
+            insertar_en_polaca(cte_polaca);
             contador_take--;
         }
         cantidad_cte++;
@@ -305,7 +311,8 @@ constante_numerica_take:
         // Cast a string
         if(contador_take != 0){
             cargar_simbolo(conv_float_string($1), "CTE_FLOAT");
-            insertar_en_polaca(conv_float_string($1));
+            sprintf(cte_polaca, "_%s", conv_float_string($1));
+            insertar_en_polaca(cte_polaca);
             contador_take--;
         }
         cantidad_cte++;
@@ -316,12 +323,12 @@ while:
         printf("\nRegla 'PR_WHILE PAR_A condicion PAR_C LLAVE_A programa LLAVE_C' detectada");
         int pos = posicion_actual();
         apilar(&pila, &pos);
-        insertar_en_polaca("ET");
+        insertar_en_polaca("_ET");
     };
 
 iteracion:
     while PAR_A condicion_simple PAR_C LLAVE_A programa LLAVE_C {
-        insertar_en_polaca("BI");
+        insertar_en_polaca("_BI");
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
@@ -330,7 +337,7 @@ iteracion:
         insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
     } |
     while PAR_A condicion_simple OP_AND condicion_simple PAR_C LLAVE_A programa LLAVE_C {
-        insertar_en_polaca("BI");
+        insertar_en_polaca("_BI");
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
@@ -341,7 +348,7 @@ iteracion:
         insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
     } |
     while PAR_A condicion_simple OP_OR condicion_simple PAR_C LLAVE_A programa LLAVE_C {
-        insertar_en_polaca("BI");
+        insertar_en_polaca("_BI");
         int tope_pila_izq;
         int tope_pila_der;
         int tope_pila;
@@ -355,7 +362,7 @@ iteracion:
         insertar_en_polaca_posicion(pos, conv_int_string(tope_pila));
     } |
     while PAR_A between PAR_C LLAVE_A programa LLAVE_C {
-        insertar_en_polaca("BI");
+        insertar_en_polaca("_BI");
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
@@ -409,7 +416,7 @@ seleccion:
     PR_IF PAR_A condicion_simple PAR_C LLAVE_A programa LLAVE_C
     {
         printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
-        insertar_en_polaca("BI");
+        insertar_en_polaca("_BI");
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
@@ -421,7 +428,7 @@ seleccion:
     PR_IF PAR_A condicion_simple OP_AND condicion_simple PAR_C LLAVE_A programa LLAVE_C
     {
         printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
-        insertar_en_polaca("BI");
+        insertar_en_polaca("_BI");
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
@@ -435,7 +442,7 @@ seleccion:
     PR_IF PAR_A condicion_simple OP_OR condicion_simple PAR_C LLAVE_A programa LLAVE_C
     {
         printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
-        insertar_en_polaca("BI");
+        insertar_en_polaca("_BI");
         int tope_pila_izq;
         int tope_pila_der;
         desapilar(&pila, &tope_pila_der);
@@ -451,7 +458,7 @@ seleccion:
     PR_IF PAR_A between PAR_C LLAVE_A programa LLAVE_C
     {
         printf("\nRegla 'PR_IF PAR_A condicion PAR_C LLAVE_A programa LLAVE_C PR_ELSE LLAVE_A programa LLAVE_C' detectada");
-        insertar_en_polaca("BI");
+        insertar_en_polaca("_BI");
         int tope_pila;
         desapilar(&pila, &tope_pila);
         int pos = posicion_actual();
@@ -475,7 +482,7 @@ bloque_else:
 
 id_between:
     ID {
-        if(!lexema_esta_en_tabla($1)){
+        if(lexema_esta_en_tabla($1) == -1){
             sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $1);
             errorSemantico(msg_error);
         }     
@@ -489,8 +496,8 @@ id_between:
 limite_inferior_between:
     expresion {
         insertar_en_polaca(lexema_guardado);
-        insertar_en_polaca("CMP");
-        insertar_en_polaca("BGT");
+        insertar_en_polaca("_CMP");
+        insertar_en_polaca("_BGT");
         pos_condicion = posicion_actual();
         apilar(&pila, &pos_condicion);
         insertar_en_polaca("");
@@ -499,8 +506,8 @@ limite_inferior_between:
 limite_superior_between:
     expresion {
         insertar_en_polaca(lexema_guardado);
-        insertar_en_polaca("CMP");
-        insertar_en_polaca("BLT");
+        insertar_en_polaca("_CMP");
+        insertar_en_polaca("_BLT");
         pos_condicion = posicion_actual();
         apilar(&pila, &pos_condicion);
         insertar_en_polaca("");
@@ -515,7 +522,7 @@ between:
 condicion_simple:
     OP_NOT expresion operador_comparacion expresion {
         printf("\nRegla 'OP_NOT condicion_simple' detectada");
-        insertar_en_polaca("CMP");
+        insertar_en_polaca("_CMP");
         insertar_en_polaca(op_comparacion);
         pos_condicion = posicion_actual();
         apilar(&pila, &pos_condicion);
@@ -524,7 +531,7 @@ condicion_simple:
     } |
     expresion operador_comparacion expresion {
         printf("\nRegla 'expresion operador_comparacion expresion' detectada");
-        insertar_en_polaca("CMP");
+        insertar_en_polaca("_CMP");
         insertar_en_polaca(op_comparacion);
         pos_condicion = posicion_actual();
         apilar(&pila, &pos_condicion);
@@ -532,19 +539,19 @@ condicion_simple:
     };
 
 operador_comparacion:
-    OP_IGUAL {strcpy(op_comparacion, "BNE");} |
-    OP_DIF {strcpy(op_comparacion, "BQE");} |
-    OP_MAYOR {strcpy(op_comparacion, "BLE");} |
-    OP_MAYOR_I {strcpy(op_comparacion, "BLT");} |
-    OP_MENOR {strcpy(op_comparacion, "BGE");} |
-    OP_MENOR_I {strcpy(op_comparacion, "BGT");};
+    OP_IGUAL {strcpy(op_comparacion, "_BNE");} |
+    OP_DIF {strcpy(op_comparacion, "_BQE");} |
+    OP_MAYOR {strcpy(op_comparacion, "_BLE");} |
+    OP_MAYOR_I {strcpy(op_comparacion, "_BLT");} |
+    OP_MENOR {strcpy(op_comparacion, "_BGE");} |
+    OP_MENOR_I {strcpy(op_comparacion, "_BGT");};
 
 salida:
     PR_WRITE mensaje {printf("\nRegla 'PR_WRITE mensaje' detectada"); insertar_en_polaca("WRITE");};
 
 entrada:   
     PR_READ ID {
-        if(!lexema_esta_en_tabla($2)){
+        if(lexema_esta_en_tabla($2) == -1){
             sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $2);
             errorSemantico(msg_error);
         }
@@ -556,7 +563,7 @@ entrada:
 
 mensaje:
     ID {
-        if(!lexema_esta_en_tabla($1)){
+        if(lexema_esta_en_tabla($1) == -1){
             sprintf(msg_error, "La variable %s que esta queriendo usar no se encuentra declarada", $1);
             errorSemantico(msg_error);
         }
@@ -564,7 +571,11 @@ mensaje:
         insertar_en_polaca($1);
     } |
     constante_numerica |
-    CTE_STRING {cargar_simbolo($1, "CTE_STRING"); insertar_en_polaca($1);};
+    CTE_STRING {
+        cargar_simbolo($1, "CTE_STRING"); 
+        sprintf(cte_polaca, "_%s", $1); 
+        insertar_en_polaca(cte_polaca);
+    };
 
 %%
 

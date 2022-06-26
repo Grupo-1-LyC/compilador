@@ -73,6 +73,18 @@ void cargar_data_assembler(FILE* fp){
             break;
         }    		
 	}
+    for(int x=0; x<1000; x++){
+        if(polaca_inversa[x].posicion_ocupada){
+            if(strcmp("+", polaca_inversa[x].valor) == 0 || 
+               strcmp("-", polaca_inversa[x].valor) == 0 || 
+               strcmp("*", polaca_inversa[x].valor) == 0 ||
+               strcmp("/", polaca_inversa[x].valor) == 0) {
+               fprintf(fp, "@aux%d \tdd ?\n", x, polaca_inversa[x].valor);
+            }
+        }
+        else
+            break;
+    }
 }
 
 void generar_codigo_assembler(FILE* fp){
@@ -81,7 +93,7 @@ void generar_codigo_assembler(FILE* fp){
     fprintf(fp, "MOV EAX, @DATA\n");
     fprintf(fp, "MOV DS, EAX\n");
     fprintf(fp, "MOV ES, EAX\n\n");
-
+    /*
     int pos=0;
     while(polaca_inversa[pos].posicion_ocupada == 1){
 
@@ -103,5 +115,41 @@ void generar_codigo_assembler(FILE* fp){
                 fprintf(fp,"fsub")
         }
         pos++;
-    }
+    }*/
 }
+
+/*int es_operando(){
+    char nombreConGuion[strlen(terceto.t1)+1];        
+    strcpy(nombreConGuion, "_"); 
+    strcat(nombreConGuion, terceto.t1);
+
+    if ( strcmp(simbolo[x].nombre, terceto.t1) == 0 && simbolo[x].flag==1)
+    {
+        switch (simbolo[x].tipoDato)
+            {
+            case 5:
+            case 6:
+                return 20;
+                break;
+            
+            default:
+                return 1;
+                break;
+            }
+    }else{
+        if ( strcmp(simbolo[x].nombre, nombreConGuion) == 0 && simbolo[x].flag==1)
+        {
+            switch (simbolo[x].tipoDato)
+            {
+            case 5:
+            case 6:
+                return 19;
+                break;
+            
+            default:
+                return 2;
+                break;
+            }
+        }
+    }
+}*/

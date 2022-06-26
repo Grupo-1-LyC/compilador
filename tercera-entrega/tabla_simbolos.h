@@ -128,13 +128,13 @@ int lexema_esta_en_tabla(char *nombre){
 
     for(int x=0; x<100; x++){
         // Me fijo si el 'nombre' que me pasaron ya esta en la tabla.
-        // En caso de estar en la tabla retorno 1 en caso contrario retorno 0
+        // En caso de estar en la tabla retorno la posición en caso contrario retorno -1
         if(tabla_simbolos[x].posicion_ocupada==1){
             if(strcmp(nombre, tabla_simbolos[x].nombre)==0){
-                return 1;
+                return x;
             }
         }
     }
 
-    return 0;
+    return -1;
 }

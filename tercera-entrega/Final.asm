@@ -42,6 +42,17 @@ resultado_take2 	dd ?
 @int33 	dd 10.0000
 @int34 	dd 11.0000
 @int35 	dd 2.0000
+@aux30 	dd ?
+@aux36 	dd ?
+@aux38 	dd ?
+@aux46 	dd ?
+@aux53 	dd ?
+@aux55 	dd ?
+@aux66 	dd ?
+@aux86 	dd ?
+@aux101 	dd ?
+@aux103 	dd ?
+@aux110 	dd ?
 
 .CODE
 
